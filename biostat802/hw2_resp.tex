@@ -1,0 +1,306 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{bm}
+\title{Biostat 803 Homework 2}
+\date{February 12, 2018}
+\author{David (Daiwei) Zhang}
+\begin{document}
+\maketitle
+
+\section{Exponential distribution with a change point}
+\subsection{Posterior for $\xi$}
+For a variable $\theta$, let $d\theta = \mu(d\theta)$
+where $\mu$ is the Lebesgue measure.
+We have
+\begin{align*}
+\pi(\boldsymbol{x} | \xi, \eta)
+= & \prod_i^\xi \eta \exp\{ -\eta x_i \}
+\prod_{\xi+1}^n c \eta \exp\{ -c \eta x_i \} \\
+= & \eta^n c^{n - \xi} \exp\big\{ -\eta\Big[\sum_i^\xi x_i + c \sum_{\xi+1}^n x_i\Big]\Big\},
+\end{align*}
+so
+\begin{align*}
+  \pi(\xi, \eta | \bm{x})
+  \propto & \pi(\bm{x} | \xi, \eta) \pi(\xi, \eta) \\
+  = & \pi(\bm{x} | \xi, \eta) \pi(\xi) \pi(\eta) \\
+  = & \eta^n c^{n - \xi} \exp\Big\{ -\eta\Big[\sum_i^\xi x_i + c \sum_{\xi+1}^n x_i\Big]\Big\} \pi(\xi) \pi(\eta),
+\end{align*}
+and
+\begin{align*}
+  \pi(\xi | \bm{x})
+  = & \int \pi(\xi, \eta| \bm{x}) d\eta \\
+  \propto & \int \eta^n c^{n - \xi} \exp\Big\{ -\eta\Big[\sum_i^\xi x_i + c \sum_{\xi+1}^n x_i\Big]\Big\} \pi(\xi) \pi(\eta) d\eta \\
+  = & \frac{c^{n-\xi} n! \pi(\xi)}{\Big[\sum_1^\xi x_i + c\sum_{\xi+1}^n x_i\Big]^{n+1}}  \\
+  \propto & \frac{c^{n-\xi} \pi(\xi)}{\Big[\sum_1^\xi x_i + c\sum_{\xi+1}^n x_i\Big]^{n+1}} 
+\end{align*}
+
+\begin{align*}
+\pi(\boldsymbol{x} | \xi)
+= & \int \pi(\boldsymbol{x} | \xi, \eta) \pi(\eta) d\eta \\
+\propto & \int \pi(\boldsymbol{x} | \xi, \eta) d\eta \\
+= & \frac{c^{n-\xi} n!}{[\sum_1^\xi x_i + c\sum_{\xi+1}^n x_i]^{n+1}} \\
+= & \frac{n! c^{n-\xi}}{x_1^{n+1}} [\sum_1^\xi z_i + c\sum_{\xi+1}^n z_i]^{-n-1} \\
+\propto & \frac{c^{n-\xi}}{x_1^{n+1}} [\sum_1^\xi z_i + c\sum_{\xi+1}^n z_i]^{-n-1} \\
+\end{align*}
+and thus
+\begin{align*}
+\pi(\xi | \boldsymbol{x})
+  \propto & \pi(\boldsymbol{x} | \xi) \pi(\xi) \\
+\propto & \frac{\pi(\xi)}{x_1^{n+1}} c^{n-\xi}[\sum_1^\xi z_i + c\sum_{\xi+1}^n z_i]^{-n-1} \\
+\propto & \pi(\xi) c^{n-\xi}[\sum_1^\xi z_i + c\sum_{\xi+1}^n z_i]^{-n-1} 
+\end{align*}
+
+\subsection{$\bm{Z}$ is ancillary with respect to $\eta$}
+We know that the exponential distribution family
+is a location family with respect to $\eta$,
+so for $1 \leq i \leq \xi$,
+the distribution of $W_i = \eta X_i$ does not depend on $\eta$.
+Then $Z_i = W_i / W_1$ does not depend on $\eta$
+for $2 \leq i \leq \xi$.
+Similarly, for $\xi+1 \leq i \leq n$,
+the distribution of $W_i = c \eta X_i$ does not depend on $\eta$.
+Then $Z_i = W_i / (cW_1)$ does not depend on $\eta$
+for $\xi+1 \leq i \leq n$.
+Thus $\bm{Z} = (Z_2, \ldots, Z_n)$ is ancillary wrt $\eta$.
+
+\subsection{Likelihood for $\xi$ under $Z$}
+
+We transform $(x_1, \ldots, x_n)$ to $(x_1, z_2, \ldots, z_n)$.
+We have
+\begin{align*}
+  \pi(x_1, z_2, \ldots, z_n | \xi, \eta)
+  = & \pi(x_1, z_2, \ldots, z_n | \xi, \eta) |\bm{J}| \\
+  = & \eta^n c^{n - \xi} \exp\big\{ -\eta\Big[\sum_i^\xi x_i + c \sum_{\xi+1}^n x_i\Big]\Big\} x^{n-1} \\
+  = & \eta^n c^{n - \xi} \exp\big\{ -\eta x_1 \Big[\sum_i^\xi z_i + c \sum_{\xi+1}^n z_i\Big]\Big\} x^{n-1},
+\end{align*}
+since
+\begin{align*}
+  \bm{J}=
+  \begin{bmatrix}
+    \frac{\partial x_1}{\partial x_1} &  \frac{\partial x_1}{\partial z_2} & \cdots & \frac{\partial x_1}{\partial z_n} \\ 
+    \frac{\partial x_2}{\partial x_1} &  \frac{\partial x_2}{\partial z_2} & \cdots & \frac{\partial x_2}{\partial z_n} \\ 
+    \vdots & \vdots & \ddots & \vdots \\
+    \frac{\partial x_n}{\partial x_1} &  \frac{\partial x_n}{\partial z_2} & \cdots & \frac{\partial x_n}{\partial z_n} 
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    1 & 0 & 0 & \cdots & 0 \\
+    z_2 & x_1 & 0 & \cdots & 0 \\
+    z_3 & 0 & x_1 & \cdots & 0 \\
+    \vdots & \vdots & \vdots & \ddots & \vdots \\
+    z_n & 0 & 0 & \cdots & 0
+  \end{bmatrix},
+\end{align*}
+so $|\bm{J}| = x_1^{n-1}$. 
+Then 
+\begin{align*}
+  \pi(z_2, \ldots, z_n | \xi, \eta)
+  = & \int \pi(x_1, z_2, \ldots, z_n | \xi, \eta) d x_1 \\
+  = & \int \eta^n c^{n - \xi} \exp\big\{ -\eta x_1 \Big[\sum_i^\xi z_i + c \sum_{\xi+1}^n z_i\Big]\Big\} x^{n-1} d x_1  \\
+  = & \eta^n c^{n-\xi} n! \eta^{-n} \Big[\sum_i^\xi z_i + c \sum_{\xi+1}^n z_i\Big]^{-n} \\
+  \propto & c^{n-\xi} \Big[\sum_i^\xi z_i + c \sum_{\xi+1}^n z_i\Big]^{-n},
+\end{align*}
+so $\pi(\bm{z} | \eta) = \pi(z_2, \ldots, z_n | \eta) = \pi(z_2, \ldots, z_n | \xi, \eta)$.
+Notice that $\pi(z_2, \ldots, z_n | \xi, \eta)$ does not depend on $\eta$,
+so this is another way to show that $(z_2, \ldots, z_n)$ is an ancillary statistic with respect to $\eta$.
+Furthermore,
+\begin{align*}
+  \pi(\xi|\bm{z})
+  \propto & \pi(\bm{z} | \eta) \pi(\xi) \\
+  = & c^{n-\xi} \Big[\sum_i^\xi z_i + c \sum_{\xi+1}^n z_i\Big]^{-n} \pi(\xi)
+\end{align*}
+
+\subsection{Reconciliation of the two likelihoods}
+Under $\pi(\eta) \propto 1$,
+we have
+$\pi(\xi|\bm{z}) / \pi(\xi | \bm{x}) = \sum_i^\xi z_i + c \sum_{\xi+1}^n z_i \neq 1$
+in general,
+so the two posteriors cannot reconcile.
+However, if we use $\pi(\eta) \propto \eta^{-1}$,
+then
+\begin{align*}
+  \pi(\xi|\bm{x})
+  \propto & \int \eta^n c^{n - \xi} \exp\Big\{ -\eta\Big[\sum_i^\xi x_i + c \sum_{\xi+1}^n x_i\Big]\Big\} \pi(\xi) \pi(\eta) d\eta \\
+  = & \int \eta^n c^{n - \xi} \exp\Big\{ -\eta\Big[\sum_i^\xi x_i + c \sum_{\xi+1}^n x_i\Big]\Big\} \eta^{-1} \pi(\xi) d\eta \\
+  = & \int \eta^{n-1} c^{n - \xi} \exp\Big\{ -\eta\Big[\sum_i^\xi x_i + c \sum_{\xi+1}^n x_i\Big]\Big\} \pi(\xi) d\eta \\
+  = & \frac{c^{n-\xi} n! \pi(\xi)}{\Big[\sum_1^\xi x_i + c\sum_{\xi+1}^n x_i\Big]^{n}}  \\ 
+  = & \frac{c^{n-\xi} n! \pi(\xi)}{x_1^n \Big[\sum_1^\xi z_i + c\sum_{\xi+1}^n z_i\Big]^{n}} \\
+  \propto & \frac{c^{n-\xi} \pi(\xi)}{\Big[\sum_1^\xi z_i + c\sum_{\xi+1}^n z_i\Big]^{n}} \\
+  = & \pi(\xi|\bm{z}).
+\end{align*}
+
+\section{Uniform distribution with Pareto prior}
+
+\subsection{Posterior}
+
+Let $X_{(n)} = \max(X_i)$.
+For the likelihood, we have
+\begin{align*}
+  \pi(\bm{x} | \theta) = \theta^{-n} I[X_{(n)} \leq \theta],
+\end{align*}
+so the posterior is
+\begin{align*}
+  \pi(\theta | \bm{x})
+  \propto & \pi(\bm(x) | \theta) \pi(\theta) \\ 
+  \propto & \theta^{-n} I[X_{(n)} \leq \theta] \alpha \beta^\alpha \theta^{-\alpha-1} I[\beta \leq \theta]\\
+  = & \alpha \beta^\alpha \theta^{-a-n-1} I[\theta \geq \tilde{\beta}]
+\end{align*}
+where $\tilde{\beta} = \max(X_{(n)}, \beta)$.
+To find the normalizing constant, we have
+\begin{align*}
+  \pi(\bm{x}) = &  \int \pi(\bm{x} | \theta) \pi(\theta) d\theta \\
+  = & \int \alpha \beta^\alpha \theta^{-a-n-1} I[\theta \geq \tilde{\beta}] d\theta \\
+  = & \alpha \beta^\alpha \int_{\tilde{\beta}}^\infty \theta^{-a-n-1} d\theta \\
+  = & \alpha \beta^\alpha (\alpha+n)^{-1} \tilde{\beta}^{-\alpha-n}.
+\end{align*}
+Then
+\begin{align*}
+  \pi(\theta | \bm{x})
+  = & \frac{\pi(\bm{x}|\theta) \pi(\theta)}{\pi(\bm{x})} \\
+  = & (a+n) \tilde{\beta}^{\alpha+n} \theta^{-a-n-1} I[\theta \geq \tilde{\beta}] \\
+  \sim & PA(\alpha+n, \max(X_{(n)}, \beta)).
+\end{align*}
+
+\subsection{Bayes estimator}
+
+For the Bayes estimator under the square loss function,
+we have the posterior mean
+\begin{align*}
+  \hat{\theta}_{Bayes}
+  = & E[\theta | \bm{x}] \\
+  = & \int \theta (a+n) \tilde{\beta}^{\alpha+n} \theta^{-a-n-1} I[\theta \geq \tilde{\beta}] d\theta \\
+  = & (\alpha+n) \tilde{\beta}^{\alpha+n} \int_{\tilde{\beta}}^\infty \theta^{-a-n} d\theta \\
+  = & (\alpha+n) \tilde{\beta}^{\alpha+n} (\alpha+n-1)^{-1} \tilde{\beta}^{-\alpha-n+1} \\
+  = & \frac{\alpha+n}{\alpha+n-1} \max(X_{(n)}, \beta)
+\end{align*}
+
+\subsection{Compare Bayes with MLE}
+
+Since $\beta < X_{(n)}$, we have
+\[
+  \hat{\theta}_{Bayes} = \frac{\alpha+n}{\alpha+n-1} X_{(n)} = (1+\epsilon) X_{(n)}.
+\]
+where $\epsilon = (\alpha + n -1)^{-1}$.
+On the other hand, by looking at $\pi(\bm{x} | \theta)$,
+we know
+\[
+  \hat{\theta}_{MLE} = X_{(n)}.
+\]
+We need to know the distribution of $X_{(n)}$.
+For the CDF,
+\[
+  P(X_{(n)} \leq x) = \frac{x^n}{\theta^n},
+\]
+so the PDF is
+\[
+  \pi(X_{(n)}) = \theta^{-n} n x^{n-1}.
+\]
+Then
+\begin{align*}
+  E[X_{(n)}]
+  = & \int_0^\theta x \theta^{-n} n x^{n-1} dx \\
+  = & \theta^{-n} n \int_0^\theta x^{n} dx \\
+  = & \theta^{-n} n (n+1)^{-1} \theta^{n+1}\\
+  = & \frac{\theta n}{n+1}, \\
+  E[X_{(n)}^2]
+  = & \frac{\theta^2 n}{n+2}, \\
+  Var[X_{(n)}]
+  = & E[X_{(n)}^2] - E[X_{(n)}]^2 \\
+  = & \frac{\theta^2 n}{(n+1)^2(n+2)}
+\end{align*}
+Hence
+\begin{align*}
+  MSE(\hat{\theta}_{MLE}) =
+  & Bias[\hat{\theta}_{MLE}]^2 + Var[\hat{\theta}_{MLE}] \\
+  = & \frac{\theta^2}{(n+1)^2} + \frac{\theta^2 n}{(n+1)^2(n+2)} \\
+  = & \frac{2 \theta^2}{(n+1)(n+2)}.
+\end{align*}
+Similarly, for the Bayes estimator,
+\begin{align*}
+  Bias(\hat{\theta}_{Bayes})
+  = & \frac{(\epsilon n - 1)\theta}{n+1} \\
+  Var(\hat{\theta}_{Bayes})
+  = & \frac{\theta^2 n (1+\epsilon)^2}{(n+1)^2(n+2)} \\
+  MSE(\hat{\theta}_{Bayes})
+  = & \frac{(\epsilon n - 1)^2(n+2) + n(1+\epsilon)^2}{(n+1)^2(n+2)} \theta^2.
+\end{align*}
+Then comparing the two estimators,
+\begin{align*}
+  MSE(\hat{\theta}_{Bayes}) - MSE(\hat{\theta}_{MLE}) 
+  = & \frac{(\epsilon^2 n^2 - 2\epsilon n)(n+2) + n(\epsilon^2 + 2\epsilon)}{(n+1)^2(n+2)} \theta^2 \\
+  = & [(\epsilon n - 2)(n+2) + (\epsilon + 2)] \frac{n \epsilon\theta^2}{(n+1)^2(n+2)} \\
+  = & [\epsilon n^2 + 2\epsilon n + \epsilon -2n -2 ] \frac{n \epsilon\theta^2}{(n+1)^2(n+2)} \\
+  = & [\epsilon (n+1)^2 -2(n+1)] \frac{n \epsilon\theta^2}{(n+1)^2(n+2)} \\
+  = & [\epsilon (n+1) -2] \frac{(n+1)n \epsilon\theta^2}{(n+1)^2(n+2)} \\
+  = & \frac{n+1-2\alpha-2n+2}{\alpha+n+1} \frac{(n+1)n \epsilon\theta^2}{(n+1)^2(n+2)} \\
+  = & (3-2\alpha-n) \frac{(n+1)n \epsilon\theta^2}{(\alpha+n+1)(n+1)^2(n+2)} 
+\end{align*}
+Since the second term is always positive,
+we conclude that the Bayes estimator has a smaller MSE than the MLE estimator
+if and only if $2\alpha + n > 3$.
+
+\section{Uniform distribution with a uniform prior}
+
+\subsection{Bayes solution}
+
+For the Bayes solution, we have
+\begin{align*}
+  \pi(\theta)
+  = &  (2\alpha)^{-1} I[-\alpha \leq \theta \leq \alpha] \\
+  \pi(\bm{x} | \theta)
+  = & I[X_{(1)} \geq \theta - \frac{1}{2}]
+      I[X_{(n)} \leq \theta + \frac{1}{2}] \\
+  \pi(\theta | \bm{x} )
+  \propto & (2\alpha)^{-1}
+            I[\theta \geq \max(-\alpha, X_{(n)} - \frac{1}{2})]
+            I[\theta \leq \min(\alpha, X_{(1)} + \frac{1}{2})] \\
+  \propto & I[\theta \geq \max(-\alpha, X_{(n)} - \frac{1}{2})]
+            I[\theta \leq \min(\alpha, X_{(1)} + \frac{1}{2})],
+\end{align*}
+so the Bayes estimator under the absolute error loss is the posterior mean,
+that is,
+\[
+  \delta_{\Pi_\alpha}(\bm{x})
+  = \frac{1}{2}
+  [
+  \max(-\alpha, X_{(n)} - \frac{1}{2}) +
+  \min(\alpha, X_{(1)} + \frac{1}{2})
+  ].
+\]
+
+\subsection{Limit of the Bayes estimator}
+
+For every $\theta \in (-\infty, \infty)$,
+we know $X_{(n)} \geq \theta - \frac{1}{2}$
+and $X_{(1)} \leq \theta + \frac{1}{2}$.
+Then for $\alpha$ large enough,
+$-\alpha < \theta -1 \leq X_{(n)} - \frac{1}{2}$ and
+$\alpha > \theta + 1 \geq X_{(1)} + \frac{1}{2}$.
+Then
+\[
+  \delta_{\Pi_\alpha}(\bm{x})
+  = \frac{1}{2}
+  [
+  X_{(n)} - \frac{1}{2}
+  + X_{(1)} + \frac{1}{2}
+  ]
+  = \frac{1}{2}[ X_{(1)} + X_{(n)}]
+  = \delta(\bm{x}).
+\]
+Thus $\delta_{\Pi_\alpha} \to \delta$ as $\alpha \to \infty$. 
+
+\subsection{Minimax estimator}
+It suffices to show that the limiting Bayes estimator has constant risk with respect to $\theta$.
+The risk function is
+\begin{align*}
+  R(\delta, \theta)
+  = & E[|\delta(\bm{x}) - \theta|] \\
+  = & E\Big[\big|\frac{1}{2}(X_{(1)} + X_{(n)}) - \theta\big|\Big] \\
+  = & \frac{1}{2}E\Big[\big|(X_{(1)} - \theta) + (X_{(n)} - \theta)\big|\Big] 
+\end{align*}
+However, $X_{(1)} - \theta$ and $X_{(n)} - \theta$ are ancillary statistics,
+since the distribution family is a location family with respect to $\theta$.
+Thus the risk function does not depend on $\theta$.
+Thus $\delta$ is a minimax estimator.
+
+\end{document}
