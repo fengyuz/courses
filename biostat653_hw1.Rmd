@@ -1,0 +1,125 @@
+---
+title: "Biostat 653 Hw1"
+author: "David (Daiwei) Zhang"
+date: "September 27, 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(matrixStats)
+require(car)
+```
+
+## Problem 6
+
+### (1)
+
+Our model is 
+\[
+  Y \sim \beta_0 + \beta_1 I(\text{girl}) + \beta_2 I(\text{cur. expo.}) + \beta_3 I(\text{past. expo.}) + \beta_4 I(\text{cur. expo.}) I(\text{girl}) + \beta_5 I(\text{past. expo.}) I(\text{girl}) 
+\]
+Then the three questions are hypothesis tests with
+\begin{enumerate}
+\item
+\begin{align*}
+  H_0 &: \beta_2 = \beta_3 = \beta_4 = \beta_5 = 0 \\
+  H_1 &: \text{At least one of these is nonzero.}
+\end{align*}
+\item
+\begin{align*}
+  H_0 &: \beta_4 = \beta_5 = 0 \\
+  H_1 &: \text{At least one of these is nonzero.}
+\end{align*}
+\item
+\begin{align*}
+  H_0 &: \beta_2 < \beta_3 \quad\text{and}\quad \beta_2 + \beta_4 < \beta_3 + \beta_5 \\
+  H_1 &: \text{At least one of these is false.}
+\end{align*}
+\end{enumerate}
+
+We fit the linear model:
+```{r}
+leadiq <- read.table("~/leadiq.txt")
+colnames(leadiq) <- c("id", "expo.cat", "gender", "age", "iq")
+leadiq$expo.cat <- factor(leadiq$expo.cat)
+leadiq.model <- lm(iq ~ gender + expo.cat + expo.cat * gender, data=leadiq)
+summary(leadiq.model)
+```
+
+### (2)
+We do not need to include age as a covariate, because the investigator does not ask for adjustment for age.
+Moreover, if we include age in our model,
+```{r}
+leadiq.model.withage <- lm(iq ~ age+ gender + expo.cat + expo.cat * gender, data=leadiq)
+summary(leadiq.model.withage)
+```
+
+We see that age is not a significant predictor at $\alpha = 0.05$.
+
+### (3)
+$\beta_0$: The mean IQ of a boy with no lead exposure is 103.696 ($p < 2 \times 10^{-16}$). 
+
+$\beta_1$: The mean IQ of a girl is 2.414 ($p = 0.508$) lower than that of a boy, given that they have no lead exposure. 
+
+$\beta_2$: The mean IQ of a boy with current lead exposure is 6.284 ($p = 0.163$) lower than that with no lead exposure.
+
+$\beta_3$: The mean IQ of a boy with past lead exposure is 10.234 ($p = 0.041$) lower than that with no lead exposure. 
+
+$\beta_4$: The mean difference in IQ from a girl with current lead exposure to that with no lead exposure is 3.57 ($p = 0.655$) lower than that of two boys in such situations. 
+
+$\beta_5$: The mean difference in IQ from a girl with past
+lead exposure to that with no lead exposure is 4.06 ($p = 0.601$) higher than that of two boys in such situations. 
+
+### (4)
+IQ of boy without lead exposure: $\beta_0 = 103.696$.
+IQ of boy with current lead exposure: $\beta_0 + \beta_2 = 97.412$.
+IQ of boy with past lead exposure: $\beta_0 + \beta_3 = 93.462$.
+
+### (5)
+
+As seen from the qq plot below, the observed data is close to the straight line, so which supports the linearity assumption. 
+However, in the absolute standardized residual plot,
+we see that the absolute residuals increase with the fitted values,
+so the constant variance assumption is slightly violated.
+
+```{r}
+par(mfrow=c(1,2))
+qqPlot(leadiq.model, main = "qq plot")
+spreadLevelPlot(leadiq.model)
+```
+
+## Problem 7
+
+### (1)
+```{r}
+lead <- read.table("~/lead.txt")
+colnames(lead) <- c("id", "week.0", "week.1", "week.4", "week.6")
+lead.time <- c(0,1,4,6)
+lead.mat <- as.matrix(lead[,-1])
+lead.mean <- colMeans(lead.mat)
+lead.sd <- colSds(lead.mat)
+lead.var <- lead.sd^2
+print(lead.mean)
+print(lead.sd)
+print(lead.var)
+```
+
+### (2)
+Overall, the lead level decrease sharply from the baseline to the first week, and then increases slowly till the sixth week.
+```{r}
+matplot(lead.time, t(lead.mat), type="l", lty=2, lwd=1, col=1)
+points(lead.time, lead.mean, type="l", lty=1, lwd=5, col=1)
+```
+
+###(3)
+The two calculations of the variance are identical.
+```{r}
+lead.cov <- cov(lead.mat)
+lead.cor <- cor(lead.mat)
+print(lead.cov)
+print(lead.cor)
+```
+
+
+

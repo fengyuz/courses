@@ -1,0 +1,281 @@
+\documentclass[12pt]{article}
+\usepackage{float}
+% \usepackage[nolists]{endfloat}
+\usepackage{epsfig} \usepackage[margin=1.5in]{geometry}
+\usepackage[semicolon,authoryear]{natbib} \bibliographystyle{natbib}
+\usepackage{amsmath}
+\usepackage{cleveref}
+\usepackage{color}
+
+\begin{document}
+\setlength{\textheight}{625pt} \setlength{\baselineskip}{23pt}
+
+\title{Bayesian Methods for Adaptive Phase I Clinical Trials: A Simulation Study}
+\author{David (Daiwei) Zhang}
+\date{Apr 24, 2017}
+\maketitle
+
+\noindent
+
+\section{Introduction} \label{secIntro}
+
+Clinical trials often involve substantial amount of uncertainty.
+For example, when designing a trial, clinicians need to determine the best way to treat subjects, including the optimal dose level, duration, and other key parameters.
+Traditionally, the important parameters of the trial are determined before the trial starts and are not changed during the trial.
+The downside of this approach, however, is that it may fail to show the effect of the treatment even it is effective.
+On the other hand, it may also put subjects into risk of excessive toxicity, since the trial design cannot be modified even if there are early signs that the toxicity of the treatment has been underestimated.
+These disadvantages of fixed trial designs motivated the development of adaptive trial designs.
+In an adaptive trial, clinicians take advantage of the information they have so far at every moment of the trial.
+Commonly, patients are enrolled to the trial at different times,
+and this means that information regarding the treatment accumulates over time.
+Adaptive trials take advantage of this accumulation of information and adjust key parameters for the next patient based on the information that has been obtained from the previous patients.
+Rather than working toward a statistically significant p-value,
+this approach of clinical trials aims at more ``pragmatic'' goals such as confirming the benefit of the treatment and finding the dose level for the next stage of the trial.
+Adaptive clinical trials are especially useful when there is a great amount of uncertainty and the risks and costs of the treatment are anticipated to be substantial (\cite{roger}).
+
+The iterative do-and-update nature of adaptive trials makes them a natural place to use Bayesian methods.
+Bayesian inference is particularly useful in situations where information is limited and beliefs about the object in question are constantly updated as new pieces of information arrives.
+Compared to the frequentist approach, the Bayesian approach is more flexible in incorporating complex information and has many powerful computational tools, such as the MCMC methods (\cite{dunson}).
+In the area of adaptive clinical trials, Bayesian methods have been used in strategies such as response-adaptive randomization, dose-response modeling, and making decision rules from predictive probabilities (\cite{roger}).
+
+In this paper, we will focus on Bayesian adaptive methods that are commonly applied in phase I clinical trials.
+Phase I trials are conducted after pre-clinical information has been collected from animal studies.
+Participants are usually healthy volunteers and the size is generally small.
+A primary goal in this stage is to identify the largest dose (called the maximally tolerated dose, or MTD) that does not cause unacceptable toxicity (called the dose limiting toxicity, or DLT) among more than a certain proportion (called the target toxicity level, or TTL) of the patients.
+Typically, the first patient (or group of patients) is assigned with a minimal dose level.
+After that, the dose level is increased if no or little DLT is observed in the patient, and decreased or the trial is terminated if too much DLT is observed (\cite{friedman}).
+The method for using the current patient's response to determine the dose level for the next patient is what makes phase I designs different from each other.
+In \Cref{secMeth}, we describe some common methods in phase I trials.
+Next, these methods are investigated in a simulation study in \Cref{secSim}.
+Finally, we compare and contrast them in \Cref{secDiscuss} to gain deeper insights of the strengths and weaknesses of various Bayesian methods in phase I trials.
+
+\section{Methods and Models} \label{secMeth}
+
+Phase I trial designs can broadly be divided into two categories: rule-based and model-based.
+In this section, we list some of the common methods for both categories and describe the dose increment scheme and dose assignment scheme for each of them.
+
+\subsection{Rule-based designs}
+
+The epitome of rule-based designs for phase I trials is the traditional 3+3 design.
+First, a sequence of dose levels are determined before the trial.
+For each dose level, clinicians set the percentage to increase.
+For example, if the first dose level is 15mg and the increment sequence is 100, 67, 50, 40, 33,
+then the dose levels are 15mg, 30mg, 50mg, 75mg, 105mg, 140mg.
+Next, a patient cohort of size 3 is assigned with dose level 1.
+If no DLT is observed in any of the 3 patients, then the next 3 patients are assigned with dose level 2.
+If exactly one of the 3 patients develops DLT,
+then an additional cohort of 3 patients is given the same dose level,
+and if none of these 3 develops DLT, then the next dose level is selected for the next cohort of 3,
+or else the trial terminates and the previous dose level is the MTD.
+At any stage of the trial,
+if more than 1 out of the 3 patients is found to have DLT,
+the trial terminates and the previous dose level is the MTD (\cite{berry} 88-89).
+The assumption in the 3+3 design is that MTD occurs when one-third of the patients develops DLT (\cite{friedman}).
+
+\subsection{Model-based designs}
+
+Model-based designs are based on the assumption that there is a monotonic, continuous relationship between dose levels and the probability of DLT.
+A family of curves that represent such relationship is selected before the trial, and the family usually has one free parameter.
+The goal of the trial is to determine this parameter,
+from which we can identify the dose level that gives the probability of DLT that is the closest to the TTL.
+The model-based designs are the most easily carried out in the Bayesian framework (\cite{berry} 93).
+Not only so, but the Bayesian posterior provides useful information in addition to the estimated MTD.
+We describe some common model-based designs in the rest of this section.
+
+\subsubsection{Continual reassessment method}
+
+The continual reassessment method (CRM) might be the first model-based design under the Bayesian framework (\cite{oquigley}).
+This method starts with choosing a family of one-to-one correspondence function $p_a(d)$ (the dose-toxicity curve) that maps the dose level range to $(0, 1)$, where $a$ is the parameter that determines the curve.
+Common examples include the logistic curve
+\[
+  p_a(d) = \frac{\exp(3+ad)}{1+\exp(3+ad)},
+\]
+which maps $(-\infty, \infty)$ to $(0,1)$, and the power curve
+\[
+  p_a(d) = d^{\exp(a)},
+\]
+which maps $(0,1)$ to $(0,1)$.
+Then the goal of the trial is to estimate $a$.
+One may have noticed that dose levels rarely range from $0$ to $1$ or from $-\infty$ to $\infty$.
+Thus in CRM dose levels typically need to be standarized before being used.
+To do this, we need to ask experts to ``guess'' the prior distribution of $a$ as well as the probability of DLT at each dose level.
+Then the dose levels are converted to the values that correspond to the guessed probabilities of DLT on the curve with $a$ estimated from the prior (e.g. mean or median).
+These are the initialization steps for CRM.
+After these, we assign the patient with the dose level that is the closest to the corresponding value of TTL based on the dose-toxicity curve,
+with $a$ estimated to be the mean or median of the posterior. 
+Once the response is observed, we use it to update the distribution for $a$.
+These steps are repeated until the posterior of $a$ is precise enough or the maximum sample size has been reached (\cite{berry} 94-95).
+
+\subsubsection{Escalation with overdose control}
+
+Although CRM is efficient in using all the information that has been accumulated, it also runs the risk of exposing the patients to dangerous dose level if the initial values are incorrect or the first few patients' responses are anomalous.
+A modification of the CRM called escalation with overdose control (EWOC) is developed to address this issue.
+EWOC is the same as CRM except that when choosing the next dose level, rather than using the mean or median MTD, it selects the dose that is the closest to the $\alpha^{\text{th}}$ quantile of MTD, where $\alpha < 0.5$.
+This serves as an overdose control for the patients (\cite{berry} 102-105).
+
+\subsubsection{Time-to-event monitoring}
+
+In both CRM and EWOC, patients' responses are treated as binary.
+However, binary responses do not take into account of all the information.
+In many cases, the response is whether or not a patient has developed DLT {\it within a certain time horizon}.
+If we record the time it takes for DLT to be observed in a patient,
+we can use this extra piece of information to improve our result.
+This is exactly the design of Time-to-event monitoring (TITE).
+In TITE, everything is the same as CRM except that when we update the prior with the likelihood, instead of using $p(d_i, a)$ as the probability of DLT, we uses $w_i p(d_i, a)$, where $w_i = U_i / T$ with $T$ being the time horizon and $U_i$ being the time it takes for DLT to be developed on patient $i$, truncated by $T$.
+In other words, we extends CRM with a weight for the likelihood by using the time-to-event (\cite{berry} 105-107).
+
+
+
+
+\section{Simulation Study} \label{secSim}
+
+We now do a simulation study to compare the performance of the designs described previously.
+We simulate traditional 3+3, CRM with cohort size 1, CRM with cohort size 3, EWOC, and TITE in two different scenarios for 1000 times each.
+The treatment is more toxic in the first scenario and less toxic in the second scenario.
+There are 5 dose levels in each scenario: 15mg, 30mg, 50mg, 75mg, 105mg, and and their true probabilities $p_j$ of DLT are 0.05, 0.15, 0.30, 0.45, 0.60, and 0.05, 0.10, 0.20, 0.30, 0.50, respectively.
+Our TTL for both scenarios is 0.30.
+We use the logistic curve as the dose-toxicity curve, and $\alpha \sim \operatorname{Exponential}(1)$ as the prior.
+The standardized dose levels are calculated with $a=1$ by
+\[
+  d_j = \log \frac{p_j}{1-p_j} - 3.
+\]
+Then the standardized dose levels are -5.944, -5.197, -4.386, -3.847, -3.000.
+(In fact, we can set $a$ to be any value for standardizing the dose levels, since the relation between $a$ and $d$ is a one-to-one correspondence, when $p$ is fixed.)
+For the CRM method and its modifications, each trial is stopped when either 1) we have enrolled more than 30 patients, or 2) we have enrolled more than 18 patients and the current MTD has been tested on more than 6 patients.
+This simulation study uses ideas from \cite{berry} Ch. 3.
+The methods are implemented in R and the posterior is sampled by using OpenBUGS and the BRugs package.
+The result is shown in \Cref{tblScn1}.
+
+
+\section{Discussion} \label{secDiscuss}
+
+From the result of the simulation we can see that for both Scenario 1 and Scenario 2, all the model-based designs have a much higher probability of identifying the correct MTD.
+In particular, the CRM 1 method gives the best prediction for MTD (0.498 and 0.502).
+In terms of safety, EWOC has the lowest proportion of patients that developed DLT (0.194 and 0.174),
+as well as the lowest proportion of patients that are assigned with dose levels above MTD.
+The second safest method is 3+3.
+In addition, the average number of patients enrolled in each design is about the same for all the model-based methods.
+The 3+3 design takes fewer patients than the model-based designs, but it also has a different stopping rule from theirs.
+
+When looking at the strengths and weaknesses of each method, we find that the 3+3 method tend to be conservative and underestimate the MTD.
+It also has a simpler design compared to the model-based methods.
+The CRM 1 method is the simplest form of the model-based methods,
+but it has the highest probability of finding the correct MTD.
+However, it is also the most unsafe method as seen in the proportion of patients that developed DLT (0.268 and 0.256).
+Safety is improved when the cohort size for CRM is increased from 1 to 3.
+In CRM 3, three patients are observed before the next dose level is assigned,
+which makes the method less prone to incorrect initial values and atypical responses in patients.
+However, this also means that CRM 3 does not use information as efficiently as CRM 1 does,
+as seen in CRM 3's slightly lower rate in identifying the correct MTD (0.479 and 0.474).
+EWOC is designed to control overdose, and the simulation shows that this method has done its job well.
+It is the safest method but at the same time still has a high rate of finding the true MTD.
+Notice that for EWOC, the incorrect identifications of the MTD are strongly skewed to the safer side, that is, the dose level immediately below the true MTD.
+Thus it has a good combination of correctness and safety.
+Finally, TITE's performance is no better than the other methods even though it collect more information.
+The estimated MTD is more spread out than in the other methods.
+Compared to CRM 1, it has a lower rate of identifying the correct MTD and also exposes a higher proportion of  patients to dose levels above the MTD.
+
+In conclusion, the simulation study shows that by using adaptive Bayesian methods to model and estimate the dose-toxicity relation,
+we can significantly improve the efficiency and safety of phase I clinical trials, especially when they are compared to the traditional 3+3 method.
+However, we must understand from the simulation the trade-offs between efficiency in using information and safety for treating patients.
+Fortunately, various Bayesian model-based adaptive designs have been developed to suit the needs in different phase I clinical trials.
+If safety is the greatest concern, EWOC would be the most appropriate method.
+On the other hand, CRM 1 would be the best choice for situations that demand high efficiency.
+Furthermore, the performance of TITE in the simulation study is quite enigmatic.
+Further studies need to be done to investigate why extra pieces information are not incorporated into the model in a helpful manner.
+
+
+
+
+
+\newpage
+
+\begin{thebibliography}{}
+
+\bibitem[Berry et al.(2011)]{berry} Berry, S. M., Carlin, B. P., Lee, J. J., and Muller, P.. {\it Bayesian Adaptive Methods for Clinical Trials}. Chapman \& Hall (2011).
+
+\bibitem[Dunson(2001)]{dunson} Dunson, David B. ``Commentary: practical advantages of Bayesian analysis of epidemiologic data.'' American journal of Epidemiology 153.12 (2001): 1222-1226.
+
+\bibitem[Friedman et al.(1998)]{friedman} Friedman, Lawrence M., et al. {\it Fundamentals of clinical trials}. Vol. 3. New York: Springer, 1998.
+
+\bibitem[Lewis \& Berry Consultants(2012)]{roger} Lewis, Roger J., and L. L. C. Berry Consultants. ``An overview of bayesian adaptive clinical trial design.'' Berry Consultants (2012).
+
+\bibitem[O'Quigley, Pepe, \& Fisher(1990)]{oquigley} O'Quigley, John, Margaret Pepe, and Lloyd Fisher. ``Continual reassessment method: a practical design for phase 1 clinical trials in cancer.'' Biometrics (1990): 33-48.
+
+\end{thebibliography}
+
+\newpage
+
+\appendix
+
+\section{Tables and Figures}
+
+
+
+\begin{table}[H] \label{tblScn1}
+  \centering
+  \begin{tabular}{|cc|c|c|c|c|c|c|c|} 
+    \hline
+    Scenario 1 & Dose & 1 & 2 & 3 & 4 & 5 & DLT & N \\
+               & Pr(DLT) & 0.05 & 0.15 & 0.30 & 0.45 & 0.60 & & \\
+    \hline
+    3+3 & Toxicity & 0.051 & 0.150 & 0.304 & 0.444 & 0.609 & 0.211 & 15.12 \\
+               & Patients & 0.261 & 0.326 & 0.268 & 0.121 & 0.023 & & \\
+               & MTD & 0.209 & 0.424 & 0.262 & 0.066 & 0.000 & & \\
+    \hline
+    CRM 1 & Toxicity & 0.049 & 0.149 & 0.297 & 0.435 & 0.584 & 0.268 & 18.45 \\
+               & Patients & 0.160 & 0.246 & 0.334 & 0.189 & 0.072 & & \\
+               & MTD & 0.007 & 0.241 & 0.498 & 0.214 & 0.040 & & \\
+    \hline
+    CRM 3 & Toxicity & 0.053 & 0.152 & 0.300 & 0.434 & 0.473 & 0.230 & 18.97 \\
+               & Patients  & 0.211 & 0.316 & 0.286 & 0.160 & 0.028 & & \\
+               & MTD & 0.013 & 0.227 & 0.479 & 0.244 & 0.037 & & \\
+    \hline
+    EWOC & Toxicity & 0.055 & 0.153 & 0.308 & 0.455 & 0.550 & 0.194 & 18.82 \\
+               & Patients & 0.270 & 0.381 & 0.268 & 0.072 & 0.010 & & \\
+               & MTD & 0.042 & 0.438 & 0.424 & 0.086 & 0.010 & & \\
+    \hline
+    TITE & Toxicity & 0.054 & 0.153 & 0.302 & 0.449 & 0.611 & 0.260 & 19.83 \\
+               & Patients & 0.223 & 0.226 & 0.292 & 0.206 & 0.052 & & \\
+               & MTD & 0.022 & 0.160 & 0.400 & 0.332 & 0.086 & & \\
+    \hline
+  \end{tabular}
+  \caption{Simulation result for Scenario 1}
+\end{table}
+
+
+
+
+\begin{table}[H] \label{tblScn2}
+  \centering
+  \begin{tabular}{|cc|c|c|c|c|c|c|c|} 
+    \hline
+    Scenario 2 & Dose & 1 & 2 & 3 & 4 & 5 & DLT & N \\
+               & Pr(DLT) & 0.05 & 0.10 & 0.20 & 0.30 & 0.50 & & \\
+    \hline
+    3+3 & Toxicity & 0.053 & 0.099 & 0.188 & 0.296 & 0.505 & 0.183 & 16.96 \\
+               & Patients & 0.220 & 0.246 & 0.258 & 0.198 & 0.078 & & \\
+               & MTD & 0.103 & 0.231 & 0.340 & 0.242 & 0.000 & & \\
+    \hline
+    CRM 1 & Toxicity & 0.043 & 0.088 & 0.200 & 0.296 & 0.503 & 0.256 & 18.54 \\
+               & Patients & 0.130 & 0.125 & 0.234 & 0.310 & 0.201 & & \\
+               & MTD & 0.001 & 0.049 & 0.260 & 0.502 & 0.188 & & \\
+    \hline
+    CRM 3 & Toxicity & 0.049 & 0.102 & 0.207 & 0.295 & 0.489 & 0.207 & 19.02 \\
+               & Patients & 0.192 & 0.197 & 0.261 & 0.248 & 0.102 & & \\
+               & MTD & 0.000 & 0.061 & 0.262 & 0.474 & 0.203 & & \\
+    \hline
+    EWOC & Toxicity & 0.050 & 0.099 & 0.201 & 0.326 & 0.484 & 0.174 & 19.38 \\
+               & Patients & 0.230 & 0.249 & 0.302 & 0.179 & 0.040 & & \\
+               & MTD & 0.025 & 0.150 & 0.413 & 0.341 & 0.068 & & \\
+    \hline
+    TITE & Toxicity & 0.056 & 0.104 & 0.200 & 0.310 & 0.482 & 0.211 & 20.139 \\
+               & Patients & 0.215 & 0.186 & 0.251 & 0.233 & 0.115 & & \\
+               & MTD & 0.001 & 0.070 & 0.254 & 0.420 & 0.248 & & \\
+    \hline
+  \end{tabular}
+  \caption{Simulation result for Scenario 2}
+\end{table}
+
+
+\end{document}

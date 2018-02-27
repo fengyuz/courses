@@ -1,0 +1,69 @@
+\documentclass[12pt]{article}
+\usepackage{float}
+% \usepackage[nolists]{endfloat}
+\usepackage{epsfig} \usepackage[margin=1.5in]{geometry}
+\usepackage[semicolon,authoryear]{natbib} \bibliographystyle{natbib}
+\usepackage{amsmath}
+\usepackage{cleveref}
+
+\begin{document}
+\setlength{\textheight}{625pt} \setlength{\baselineskip}{23pt}
+
+\title{Analysis of Error in the 2016 Presidential Election Polls}
+\author{David (Daiwei) Zhang}
+\date{Apr 26, 2017}
+\maketitle
+
+\noindent
+
+\section{Introduction} \label{sec:intro}
+
+The 2016 presidential election generated many interesting datasets and statistical problems.
+Most polls have underestimated Trump's performance,
+including state polls, national polls, forecasts, and exit polls (\cite{bialik}).
+Exports have suggested different survey factors that caused this result,
+especially the nonresponse bias and low turnout rate (\cite{stein}).
+In this report, we present an analysis of the election poll and result datasets in order to better understand the errors in the polls.
+
+\section{Datasets} \label{sec:data}
+
+The analysis uses mainly two datasets, one for the polls and the other for the election results.
+The poll dataset is obtained from FiveThirtyEight (\cite{pollData}).
+It consists of state level and national poll results conducted by media, universities, and other institutes.
+Beside the proportion of votes won by each candidate, the dataset also contains information such as the sample size and the date of the poll.
+The election result is contained in an unpublished dataset compiled by Emil O. W. Kirkegaard from the New York Times and a study of inequality in the U. S. (\cite{kirkegaard}).
+It contains county-level election result as well as more than a hundred variables about each county's demography, economy, and other information.
+Both datasets are available to the public.
+
+\section{Analysis} \label{sec:analy}
+
+We are interested in how the poll's deviation from the election result is associated with other factors.
+
+Thus we conduct a linear regression analysis of the absolute 
+
+
+\section{Discussion} \label{sec:discuss}
+
+
+
+
+
+\newpage
+
+\begin{thebibliography}{}
+
+\bibitem[Bialik \& Enten(2016)]{bialik} Bialik, C. and Enten, L. The Polls Missed Trump. We Asked Pollsters Why. FiveThirtyEight (2016).
+
+\bibitem[Silver (2016)]{pollData} Silver, N. Presidential General Polls, 2016. FiveThirtyEight (2016). Retrieved from https://projects.fivethirtyeight.com/2016-election-forecast.
+
+\bibitem[Kirkegaard (2016)]{voteData} Kirkegaard, E. O. USA County Data. (2016). Unpublished dataset. Retrieved from https://github.com/Deleetdk/USA.county.data.
+
+\bibitem[Kirkegaard (2016)]{kirkegaard} Kirkegaard, E. O. Inequality across US counties: an S factor analysis. (2016).
+
+\bibitem[Stein(2016)]{stein} Stein, J.. ``7 experts try to explain how the polls missed Donald Trump’s victory''. Vox (2016).
+
+
+
+\end{thebibliography}
+
+\end{document}

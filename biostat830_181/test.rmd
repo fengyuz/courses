@@ -1,0 +1,9 @@
+# problem 1
+hello
+This is a $math = \sqrt(x)$ equation.
+
+```{r}
+x <- c(1:5)
+y <- x + 10
+print(y)
+```

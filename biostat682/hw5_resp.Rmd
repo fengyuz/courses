@@ -1,0 +1,653 @@
+---
+title: "Biostat 682 Homework 5"
+author: "David (Daiwei) Zhang"
+date: "December 6, 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=12, fig.height=8, warning=FALSE, message=FALSE)
+library(R2jags)
+library(lattice)
+library(MASS)
+library(plyr)
+library(ggplot2)
+library(boot)
+library(geoR)
+library(mcmcplots)
+library(MCMCvis)
+set.seed(10)
+```
+
+## Problem 1
+
+### (a)
+
+We first fit a Bayesian linear regression model.
+
+```{r}
+load("swim_time.RData")
+ns   <- nrow(Y)
+nt   <- ncol(Y)
+JAGS_swimmer_model = function(){
+  for (i in 1:ns) {
+    for (j in 1:nt) {
+      Y[i, j]    ~ dnorm(mean[i, j], tau_e)
+      mean[i, j] <- a[i] + b[i] *j
+    }
+    
+  }
+  for (i in 1:ns){
+    a[i]~ dnorm(22, tau_a)
+    b[i]~ dnorm(0, tau_b)
+    Y_pred[i] ~ dnorm(a[i] + b[i] * 7, tau_e)
+    z[i] <- (Y_pred[i] == min(Y_pred)) 
+  }
+  tau_a~ dgamma(0.1, 0.1)
+  tau_b ~ dgamma(0.1, 0.1)
+  tau_e ~ dgamma(0.1, 0.1)
+  sigma2_a <- 1/tau_a
+  sigma2_b <- 1/tau_b
+  sigma2_e <- 1/tau_e
+}
+
+fit_swimmer_model = jags(
+  data = list(Y = Y, ns = ns, nt = nt),
+  inits = list(list(a = rep(20,4), b = rep(0,4)),
+               list(a = rep(30,4), b = rep(1,4)),
+               list(a = rep(25,4), b = rep(-1,4)),
+               list(a = rep(10,4), b = rep(0,4)),
+               list(a = rep(15,4), b = rep(0,4))),
+  
+parameters.to.save = c("a","b","sigma2_a","sigma2_b", "sigma2_e", "Y_pred","z"),
+  n.chains = 5,
+  n.iter = 10000,
+  n.burnin = 1000,
+  model.file = JAGS_swimmer_model
+)
+
+chains = as.mcmc(fit_swimmer_model)
+MCMCtrace(chains, pdf = FALSE, params = c("a","b","sigma2_a","sigma2_b", "sigma2_e", "Y_pred"))
+gelman.diag(chains, multivariate = FALSE)
+```
+
+### (b)
+
+Next, we find the predictive posterior distribution for each player two weeks after the last recorded time.
+This is represented by the Y_pred variable in the JAGS analysis.
+
+```{r}
+summary(chains)
+```
+
+### (c)
+
+The variables z[i] shows the probability that player i will be the fastest two weeks after the last recording. 
+As we can see, player 1 is the most likely to be the fastest (z[1] = 0.83440).
+
+## Problem 2
+
+### (a)
+
+We fit a linear regression model to study the relation between crime rates and explorotary variables.
+
+```{r}
+X = UScrime[,1:15]
+Y = UScrime[,16]
+n = nrow(UScrime)
+p = ncol(UScrime) - 1
+df = list()
+df$X = X
+df$Y = Y
+df$n = n
+df$p = p
+
+JAGS_BLR_flat = function(){
+  # Likelihood
+  for(i in 1:n){
+    Y[i] ~ dnorm(mu[i],inv_sigma2)
+    mu[i] <- beta_0 + inprod(X[i,],beta) 
+  }
+  # Prior for beta
+  for(j in 1:p){
+    beta[j] ~ dnorm(0,0.0001)
+    #non-informative priors 
+  }
+  # Prior for intercept
+  beta_0 ~ dnorm(0, 0.0001)
+  
+  # Prior for the inverse variance
+  inv_sigma2 ~ dgamma(0.0001, 0.0001)
+  sigma2 <- 1.0/inv_sigma2
+}
+
+fit_JAGS_flat = jags(data=df,
+                inits=list(list(beta = rnorm(p),
+                                beta_0 = 0,
+                                inv_sigma2 = 1),
+                         list(beta = rnorm(p),
+                                beta_0 = 1,
+                                inv_sigma2 = 2),
+                          list(beta = rnorm(p),
+                                beta_0 = 2,
+                                inv_sigma2 = 2),
+                          list(beta = rnorm(p),
+                                beta_0 = 10,
+                                inv_sigma2 = 5),
+                         list(beta = rnorm(p),
+                                beta_0 = 20,
+                                inv_sigma2 = 1)),
+                parameters.to.save = c("beta_0","beta","sigma2"),
+                n.chains=5,
+                n.iter=10000,
+                n.burnin=1000,
+                model.file=JAGS_BLR_flat)
+
+chains_2a = as.mcmc(fit_JAGS_flat)
+plot(chains_2a)
+gelman.diag(chains_2a)
+
+##output 95% credible interval
+summary(chains_2a)
+```
+
+We see that variable 5 and variable 14 are the most negatively associated with crime rate, and variable 4 and variable 3 are the most positively associated with crime rate.
+
+### (b)
+
+Now we do a cross validation of the model.
+
+```{r}
+#split data into training and test set
+split_data = function(df,train_test_ratio = 1,random=TRUE){
+  n_train = floor(df$n*train_test_ratio/(1+train_test_ratio))
+  n_test  =  df$n - n_train
+  if(random){
+    train_idx = sample(1:n,n_train,replace = FALSE)
+    test_idx = setdiff(1:n,train_idx)
+  }
+  else{
+    train_idx = 1:n_train
+    test_idx = n_train+1:n_test
+  }
+  
+  df_t = list()
+  df_t$Y_train = df$Y[train_idx]
+  df_t$X_train = df$X[train_idx,,drop=FALSE]
+  df_t$X_test = df$X[test_idx,,drop=FALSE]
+  df_t$n_train = n_train
+  df_t$n_test = n_test
+  df_t$p = df$p
+  
+  return(list(df_t=df_t,Y_test=df$Y[test_idx]))
+}
+
+pred = split_data(df, random = FALSE)
+
+##define a predictive JAGS
+JAGS_BLR_flat_pred = function(){
+  # Likelihood
+  for(i in 1:n_train){
+    Y_train[i] ~ dnorm(mu_train[i],inv_sigma2)
+    mu_train[i] <- beta_0 + inprod(X_train[i,],beta) 
+    # same as beta_0 + X[i,1]*beta[1] + ... + X[i,p]*beta[p]
+  }
+  # Prior for beta
+  for(j in 1:p){
+    beta[j] ~ dnorm(0,0.0001)
+    #non-informative priors 
+  }
+  # Prior for intercept
+  beta_0 ~ dnorm(0, 0.0001)
+  
+  # Prior for the inverse variance
+  inv_sigma2 ~ dgamma(0.0001, 0.0001)
+  sigma2 <- 1.0/inv_sigma2
+  
+  #prediction
+   # Predictions
+  for(i in 1:n_test){
+    Y_test[i] ~ dnorm(mu_test[i],inv_sigma2)
+    mu_test[i] <- beta_0 + inprod(X_test[i,],beta) 
+  }
+}
+
+fit_JAGS_flat_pred = jags(data=pred$df_t,
+                inits=list(list(beta = rnorm(p),
+                                beta_0 = 0,
+                                inv_sigma2 = 1),
+                         list(beta = rnorm(p),
+                                beta_0 = 1,
+                                inv_sigma2 = 2),
+                          list(beta = rnorm(p),
+                                beta_0 = 2,
+                                inv_sigma2 = 2),
+                          list(beta = rnorm(p),
+                                beta_0 = 10,
+                                inv_sigma2 = 5),
+                         list(beta = rnorm(p),
+                                beta_0 = 20,
+                                inv_sigma2 = 1)),
+                parameters.to.save = c("beta_0","beta","sigma2", "Y_test"),
+                n.chains=5,
+                n.iter=10000,
+                n.burnin=1000,
+                model.file=JAGS_BLR_flat_pred)
+
+chains_2b = as.mcmc(fit_JAGS_flat_pred)
+
+##plot the predictive values
+result = summary(chains_2b)
+q = result$quantiles
+dtfr = as.data.frame(cbind(result$quantiles))
+
+##compare
+pred$Y_test
+fit_JAGS_flat_pred$BUGSoutput$median$Y_test
+```
+
+### (c)
+
+Finally, we try the spike-and-slab priors for the coefficients.
+
+```{r}
+JAGS_BLR_SpikeSlab = function(){
+  # Likelihood
+  for(i in 1:n){
+    Y[i] ~ dnorm(mu[i],inv_sigma2)
+    mu[i] <- beta_0 + inprod(X[i,],beta) 
+    # same as beta_0 + X[i,1]*beta[1] + ... + X[i,p]*beta[p]
+  }
+  #Prior for beta_j
+  for(j in 1:p){
+    beta[j] ~ dnorm(0,inv_tau2[j])
+    inv_tau2[j] <- (1-gamma[j])*1000+gamma[j]*0.01
+    gamma[j] ~ dbern(0.5)
+  }
+  # Prior for intercept
+  beta_0 ~ dnorm(0, 0.0001)
+  
+  # Prior for the inverse variance
+  inv_sigma2 ~ dgamma(0.0001, 0.0001)
+  sigma2 <- 1.0/inv_sigma2
+}
+
+fit_JAGS_SpikeSlab = jags(data=df,
+                inits=list(list(beta = rnorm(p),
+                                beta_0 = 0,
+                                inv_sigma2 = 1),
+                         list(beta = rnorm(p),
+                                beta_0 = 1,
+                                inv_sigma2 = 2),
+                          list(beta = rnorm(p),
+                                beta_0 = 2,
+                                inv_sigma2 = 2),
+                          list(beta = rnorm(p),
+                                beta_0 = 10,
+                                inv_sigma2 = 5),
+                         list(beta = rnorm(p),
+                                beta_0 = 20,
+                                inv_sigma2 = 1)),
+                parameters.to.save = c("beta_0","beta","sigma2"),
+                n.chains=5,
+                n.iter=10000,
+                n.burnin=1000,
+                model.file=JAGS_BLR_flat)
+
+plot(fit_JAGS_SpikeSlab)
+chains_2c = as.mcmc(fit_JAGS_SpikeSlab)
+summary(chains_2c)
+
+##Prediction
+JAGS_BLR_SpikeSlab_pred = function(){
+  # Likelihood
+  for(i in 1:n_train){
+    Y_train[i] ~ dnorm(mu_train[i],inv_sigma2)
+    mu_train[i] <- beta_0 + inprod(X_train[i,],beta) 
+    # same as beta_0 + X[i,1]*beta[1] + ... + X[i,p]*beta[p]
+  }
+  # Prior for beta
+  for(j in 1:p){
+    beta[j] ~ dnorm(0,inv_tau2[j])
+    inv_tau2[j] <- (1-gamma[j])*1000+gamma[j]*0.01
+    gamma[j] ~ dbern(0.5)
+  }
+  # Prior for intercept
+  beta_0 ~ dnorm(0, 0.0001)
+  
+  # Prior for the inverse variance
+  inv_sigma2 ~ dgamma(0.0001, 0.0001)
+  sigma2 <- 1.0/inv_sigma2
+  
+  #prediction
+   # Predictions
+  for(i in 1:n_test){
+    Y_test[i] ~ dnorm(mu_test[i],inv_sigma2)
+    mu_test[i] <- beta_0 + inprod(X_test[i,],beta) 
+  }
+}
+
+fit_JAGS_SpikeSlab_pred = jags(data = pred$df_t,
+                inits=list(list(beta = rnorm(p),
+                                beta_0 = 0,
+                                inv_sigma2 = 1),
+                         list(beta = rnorm(p),
+                                beta_0 = 1,
+                                inv_sigma2 = 2),
+                          list(beta = rnorm(p),
+                                beta_0 = 2,
+                                inv_sigma2 = 2),
+                          list(beta = rnorm(p),
+                                beta_0 = 10,
+                                inv_sigma2 = 5),
+                         list(beta = rnorm(p),
+                                beta_0 = 20,
+                                inv_sigma2 = 1)),
+                parameters.to.save = c("beta_0","beta","sigma2","Y_test"),
+                n.chains=5,
+                n.iter=10000,
+                n.burnin=1000,
+                model.file=JAGS_BLR_SpikeSlab_pred)
+
+cbind(pred$Y_test, fit_JAGS_SpikeSlab_pred$BUGSoutput$median$Y_test)
+
+plot(pred$Y_test, type = 'l')
+lines(fit_JAGS_SpikeSlab_pred$BUGSoutput$median$Y_test, col= 'red')
+```
+
+## Problem 3
+
+### (a)
+Malaria is spread by mosquitos,
+so the effect of the use of bed-nets depends on the prevalence of mosquitos,
+which differes by village.
+
+### (b)
+
+We investiage whether we should allow the intercept or the slope to be random.
+```{r}
+# Load dataset
+gb <- gambia
+
+# Create village number as a variable
+v_loc <- unique(gb[,"x"])
+v <- match(gb[,"x"],v_loc)
+gb$v <- v
+
+# Find the villages that have both netuse and nonetuse
+v.netuse0 <- unique(gb$v[gb$netuse==0])
+v.netuse1 <- unique(gb$v[gb$netuse==1])
+v.netuse01 <- intersect(v.netuse0, v.netuse1)
+
+# Find the pos rate in each village for netuse and nonetuse
+gb.v.netuse <- aggregate(
+    list(pos=gb$pos, popu=1),
+    by = list(v=gb$v, netuse=gb$netuse),
+    FUN = sum
+)
+gb.v.netuse$pos.rate <- gb.v.netuse$pos / gb.v.netuse$popu
+
+# Put the two lines for each village in one line
+gb.v <- merge(
+    gb.v.netuse[gb.v.netuse$netuse==0, c("v", "pos", "popu", "pos.rate")], 
+    gb.v.netuse[gb.v.netuse$netuse==1, c("v", "pos", "popu", "pos.rate")], 
+    by = "v",
+    all = TRUE
+)
+names(gb.v) <- c("v", 
+                 "pos.nonet", "popu.nonet", "rate.nonet", 
+                 "pos.net", "popu.net", "rate.net"
+                 )
+gb.v$effect <- gb.v$rate.net - gb.v$rate.nonet
+
+# Show the dataframes
+print(str(gb))
+print(str(gb.v))
+
+# Linear regression MCMC by JAGS
+# Fixed intercept and slope
+linear.model.JAGS <- function(){
+    for(i in 1:n){
+        y[i] ~ dbern(p[i])
+        p[i] <- exp(logitp[i]) / (1 + exp(logitp[i])) 
+        logitp[i] <- alpha + beta * x[i]
+    }
+    alpha ~ dnorm(mu.alpha, tausq.alpha)
+    beta ~ dnorm(mu.beta, tausq.beta)
+}
+
+# Random intercept
+linear.model.JAGS.randalpha <- function(){
+    for(i in 1:n){
+        y[i] ~ dbern(p[i])
+        p[i] <- exp(logitp[i]) / (1 + exp(logitp[i])) 
+        logitp[i] <- alpha[v[i]] + beta * x[i]
+    }
+    for(j in 1:m){
+        alpha[j] ~ dnorm(mu.alpha, tausq.alpha)
+    }
+    beta ~ dnorm(mu.beta, tausq.beta)
+}
+
+# Random slope
+linear.model.JAGS.randbeta <- function(){
+    for(i in 1:n){
+        y[i] ~ dbern(p[i])
+        p[i] <- exp(logitp[i]) / (1 + exp(logitp[i])) 
+        logitp[i] <- alpha + beta[v[i]] * x[i]
+    }
+    for(j in 1:m){
+        beta[j] ~ dnorm(mu.beta, tausq.beta)
+    }
+    alpha ~ dnorm(mu.alpha, tausq.alpha)
+}
+
+# Random intercept and slope
+# Data: y, x, v, n = length(y), m = length(v)
+linear.model.JAGS.randalphabeta <- function(){
+    for(i in 1:n){
+        y[i] ~ dbern(p[i])
+        p[i] <- exp(logitp[i]) / (1 + exp(logitp[i])) 
+        logitp[i] <- alpha[v[i]] + beta[v[i]] * x[i]
+    }
+    for(j in 1:m){
+        alpha[j] ~ dnorm(mu.alpha, tausq.alpha)
+        beta[j] ~ dnorm(mu.beta, tausq.beta)
+    }
+}
+
+dat.JAGS <- list(y = gb$pos,
+                x = gb$netuse,
+                v = gb$v,
+                n = nrow(gb),
+                m = length(unique(gb$v)),
+                mu.alpha = 0,
+                tausq.alpha = 1e-3,
+                mu.beta = 0,
+                tausq.beta = 1e-3
+                )
+para.JAGS <- c("alpha", "beta")
+
+fit.JAGS.randalphabeta <- jags(data = dat.JAGS,
+                 parameters.to.save = para.JAGS,
+                 ## inits = inits.JAGS
+                 n.chains = 1,
+                 n.iter = 1e4,
+                 n.burnin = 1e3,
+                 model.file = linear.model.JAGS.randalphabeta
+                 )
+
+fit.JAGS <- jags(data = dat.JAGS,
+                 parameters.to.save = para.JAGS,
+                 ## inits = inits.JAGS
+                 n.chains = 1,
+                 n.iter = 1e4,
+                 n.burnin = 1e3,
+                 model.file = linear.model.JAGS
+                 )
+
+fit.JAGS.randalpha <- jags(data = dat.JAGS,
+                 parameters.to.save = para.JAGS,
+                 ## inits = inits.JAGS
+                 n.chains = 1,
+                 n.iter = 1e4,
+                 n.burnin = 1e3,
+                 model.file = linear.model.JAGS.randalpha
+                 )
+
+fit.JAGS.randbeta <- jags(data = dat.JAGS,
+                 parameters.to.save = para.JAGS,
+                 ## inits = inits.JAGS
+                 n.chains = 1,
+                 n.iter = 1e4,
+                 n.burnin = 1e3,
+                 model.file = linear.model.JAGS.randbeta
+                 )
+
+## Show DIC and pD for model comparison
+## Fixed intercept and slope
+print(c(fit.JAGS$BUGSoutput$DIC, 
+        fit.JAGS$BUGSoutput$pD))
+## Random intercept
+print(c(fit.JAGS.randalpha$BUGSoutput$DIC,
+        fit.JAGS.randalpha$BUGSoutput$pD))
+## Random slope
+print(c(fit.JAGS.randbeta$BUGSoutput$DIC,
+        fit.JAGS.randbeta$BUGSoutput$pD))
+## Random intercept and slope
+print(c(fit.JAGS.randalphabeta$BUGSoutput$DIC,
+        fit.JAGS.randalphabeta$BUGSoutput$pD))
+```
+
+We see that the model with a random intercept and a fixed slope has the lowest DIC and thus is the most informative and economic model.
+
+### (c)
+We now find the villages with the least/largest intercept/effect.
+```{r}
+# Extract values of alpha and beta from JAGS output
+alpha.result <- fit.JAGS.randalphabeta$BUGSoutput$mean$alpha
+beta.result <- fit.JAGS.randalphabeta$BUGSoutput$mean$beta
+alpha.result[-v.netuse01] <- NA
+beta.result[-v.netuse01] <- NA
+rate.nonet.result <- round(inv.logit(alpha.result), 3)
+rate.net.result <- round(inv.logit(alpha.result + beta.result),3)
+effect.result <- rate.net.result - rate.nonet.result 
+
+print("Observed extremes")
+print(c(which.min(rate.nonet.result), min(rate.nonet.result, na.rm = TRUE)))
+print(c(which.max(rate.nonet.result), max(rate.nonet.result, na.rm = TRUE)))
+print(c(which.min(effect.result), min(effect.result, na.rm = TRUE)))
+print(c(which.max(effect.result), max(effect.result, na.rm = TRUE)))
+
+print("Regression extremes")
+gb.v[which.min(gb.v$rate.nonet), c("v", "rate.nonet")]
+gb.v[which.max(gb.v$rate.nonet), c("v", "rate.nonet")]
+gb.v[which.min(gb.v$effect), c("v", "effect")]
+gb.v[which.max(gb.v$effect), c("v", "effect")]
+
+# Compare the regression result with direct observation
+par(mfrow=c(1,2))
+v.num <- nrow(gb.v)
+plot(gb.v$rate.nonet, rate.nonet.result, pch=".")
+text(gb.v$rate.nonet, rate.nonet.result, c(1:v.num))
+abline(0,1)
+plot(gb.v$effect, effect.result, pch=".")
+text(gb.v$effect, effect.result, c(1:v.num))
+abline(0,1)
+```
+
+We see that the regression result and direct observation give similar results
+Specifically,
+
+* Village with the smallest intercept: 7
+* Village with the greatest intercept: 13
+* Village with the most decrease of infection by using bednets: 13 (direct observation, effect = -0.605), 50 (regression, effect = -0.6)
+* Village with the most decrease of infection by using bednets: 10
+
+### (d)
+
+Finally, we explore the influcence of the prior.
+
+```{r}
+# Larger precision
+dat.JAGS.largeTausq <- list(y = gb$pos,
+                x = gb$netuse,
+                v = gb$v,
+                n = nrow(gb),
+                m = length(unique(gb$v)),
+                mu.alpha = 0,
+                tausq.alpha = 1e0,
+                mu.beta = 0,
+                tausq.beta = 1e0
+                )
+fit.JAGS.randalphabeta.largeTausq <- jags(data = dat.JAGS.largeTausq,
+                 parameters.to.save = para.JAGS,
+                 ## inits = inits.JAGS
+                 n.chains = 1,
+                 n.iter = 1e4,
+                 n.burnin = 1e3,
+                 model.file = linear.model.JAGS.randalphabeta
+                 )
+
+# Nonzero means
+dat.JAGS.offMu <- list(y = gb$pos,
+                x = gb$netuse,
+                v = gb$v,
+                n = nrow(gb),
+                m = length(unique(gb$v)),
+                mu.alpha = logit(0.5),
+                tausq.alpha = 1e-3,
+                mu.beta = logit(0.4) - logit(0.6),
+                tausq.beta = 1e-3
+                )
+fit.JAGS.randalphabeta.offMu <- jags(data = dat.JAGS.offMu,
+                 parameters.to.save = para.JAGS,
+                 ## inits = inits.JAGS
+                 n.chains = 1,
+                 n.iter = 1e4,
+                 n.burnin = 1e3,
+                 model.file = linear.model.JAGS.randalphabeta
+                 )
+
+par(mfrow=c(1,2))
+plot(
+    fit.JAGS.randalphabeta$BUGSoutput$mean$alpha,
+    fit.JAGS.randalphabeta.largeTausq$BUGSoutput$mean$alpha,
+    main = "Change in prior precision",
+    xlab = "alpha (prior: zero mean, small precision)",
+    ylab = "alpha (prior: zero mean, large precision)"
+)
+abline(0,1)
+plot(
+    fit.JAGS.randalphabeta$BUGSoutput$mean$beta,
+    fit.JAGS.randalphabeta.largeTausq$BUGSoutput$mean$beta,
+    main = "Change in prior precision",
+    xlab = "beta (prior: zero mean, small precision)",
+    ylab = "beta (prior: zero mean, large precision)"
+)
+abline(0,1)
+
+plot(
+    fit.JAGS.randalphabeta$BUGSoutput$mean$alpha,
+    fit.JAGS.randalphabeta.offMu$BUGSoutput$mean$alpha,
+    main = "Change in prior mean",
+    xlab = "alpha (prior: zero mean, small precision)",
+    ylab = "alpha (prior: nonzero mean, small precision)"
+)
+abline(0,1)
+plot(
+    fit.JAGS.randalphabeta$BUGSoutput$mean$beta,
+    fit.JAGS.randalphabeta.offMu$BUGSoutput$mean$beta,
+    main = "Change in prior mean",
+    xlab = "beta (prior: zero mean, small precision)",
+    ylab = "beta (prior: nonzero mean, small precision)"
+)
+abline(0,1)
+```
+
+We see that when the prior mean is still zero but the precision is large, the posterior means are closer to the prior mean (which is equal to 1) and therefore has a magnitude less than the results given by a flatter prior.
+When we let the prior precision to be small but the mean to be nonzero,
+the posterior means are mostly in the same scale as the results given by the zero-mean prior,
+although the means are now more spread out.
+Thus in our case, an overconfident prior is more lethal than a moderate prior, when we do not have good prior knowledge about the means.

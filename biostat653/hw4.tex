@@ -1,0 +1,120 @@
+\documentclass{article}
+
+\title{Biostat 653 Homework 4}
+\author{David (Daiwei) Zhang}
+
+\begin{document}
+\maketitle
+
+\section{Solutions}
+
+\begin{enumerate}
+\item See SAS output.
+\item See SAS code.
+\item Model fitting
+  \begin{enumerate}
+  \item 9.9530
+  \item 0.03433
+  \item -0.02883
+  \item Approximately 95\% of the subjects in Program 2 have baseline measures of strength between $80.1324 \pm 1.96 \sqrt{9.9530} = (73.94892, 86.31588)$ \\
+  Approximately 95\% of the subjects in Program 1 have baseline measures of strength between $81.2638 \pm 1.96 \sqrt{9.9530} = (75.07952, 87.44648)$.
+  \item Approximately 95\% of the subjects in Program 1 have a rate of increase for their strenth with respect to time between $0.11702 \pm 1.96 \sqrt{0.03433} = (-0.2461358, 0.4801758)$ \\
+  Approximately 95\% of the subjects in Program 2 have a rate of increase for their strenth with respect to time between $0.1690 \pm 1.96 \sqrt{0.03433} = (-0.1941558, 0.5321558)$
+  \end{enumerate}
+\item We have $LRS = 881.2 - 818.5 = 62.7 > 5.14$,
+  so should include the random slope.
+  The AIC and BIC also support this conclusion.
+\item Effects:
+  \begin{enumerate}
+  \item Program 1, intercept: $81.2638 - 1.1314 = 80.1324$
+  \item Program 1, slope: $0.1690 - 0.05198 = 0.11702$
+  \item Program 2, intercept: $81.2638$
+  \item Program 2, slope: $0.1690$
+  \end{enumerate}
+  \item The rate of increase in strength in Program 1 is expected to be $0.05198$ lower than that in Program 2. However, this effect is not significant since $0.4420 > 0.05$.
+  \item We have $\hat{V}(Y_{i1} | b_i) = 0.6647$ and $\hat{V}(Y_{i1}) = 10.6177$.
+    The former is the within-subject variance,
+    while the latter is the across-subject variance plus within-subject variance.
+  \item See SAS output.
+  \item OLS: \\
+    Intercept: 87.80000 \\
+    Slope: 0.45000
+  \item Random intercept and slope: \\
+    Intercept: $81.2638 + 6.7042 = 87.968$ \\
+    Slope: $0.1690 + 0.2163 = 0.3853$ \\
+    The estimation is slightly different in the two models.
+    For the mixed model, the estimation of the random effects for each subject depend on the estimation of the fixed effects,
+    which in turn depend on all the subjects' response.
+    OLS only takes into account the response of one subject.
+\end{enumerate}
+
+\section{SAS code}
+
+
+\begin{verbatim}
+data exercise;
+	infile "~/biostat653/exercise.txt";
+	input id program y1 y2 y3 y4 y5 y6 y7;
+run;
+
+data exercise_uni;
+	set exercise;
+	time = 0; strength = y1; output;
+	time = 2; strength = y2; output;
+	time = 4; strength = y3; output;
+	time = 6; strength = y4; output;
+	time = 8; strength = y5; output;
+	time = 10; strength = y6; output;
+	time = 12; strength = y7; output;
+	drop y1 y2 y3 y4 y5 y6 y7;
+run;
+
+proc sort data = exercise_uni;
+	by program time;
+run;
+
+proc means data=exercise_uni noprint;
+	var strength;
+	by program time;
+	output out=exercise_mean
+		mean(strength) = strength_mean;
+run;
+
+proc sgplot data=exercise_mean;
+	title "Mean strength over time by group";
+  	styleattrs
+		datacontrastcolors=(black) 
+     	datalinepatterns=(dot solid);
+	series x = time y = strength_mean / markers group = program;
+run;
+
+proc mixed data = exercise_uni;
+	title "Random intercept only";
+	class id program;
+	model strength = program time time*program / solution;
+	random intercept
+		 / type=un subject=id g gcorr v vcorr solution;
+run;
+
+proc mixed data = exercise_uni;
+	title "Random intercept and slope";
+	class id program;
+	model strength = program time time*program / solution;
+	random intercept time
+		 / type=un subject=id g gcorr v vcorr solution;
+run;
+
+data exercise_id24;
+	set exercise_uni;
+	if id = 24;
+run;
+
+proc reg data=exercise_id24;
+	title "OLS for id=24";
+	model strength = time;
+run;
+	
+\end{verbatim}
+
+
+\end{document}

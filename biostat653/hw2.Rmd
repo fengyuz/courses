@@ -1,0 +1,198 @@
+---
+title: "Biostat 653 Homework 2"
+author: "David (Daiwei) Zhang"
+date: "October 11, 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(matrixStats)
+require(MASS)
+rm(list=ls())
+set.seed(10)
+```
+
+## Problem 2
+
+### (1)
+```{r}
+N <- 1000
+mu <- c(0,0)
+sig <- matrix(c(2, 0.5, 0.5, 1), 2, 2)
+y <- mvrnorm(N, mu, sig)
+head(y)
+y <- t(y)
+```
+
+###(3)
+
+```{r}
+x <- matrix(1,2,1)
+sig <- matrix(c(1,0,0,1), 2, 2)
+num.iter <- 1e4
+for(i in 1:num.iter){
+  sig.inv <- solve(sig)
+  mu <- 1/N / sum(sig.inv) * sum(colSums(sig.inv) %*% y)
+  sig <- (y - mu) %*% t(y - mu) / N
+}
+mu.var <- 1/sum(sig.inv) / N
+print(mu)
+print(sig)
+print(mu.var)
+```
+
+### (4)
+
+Test statistic: $N(1_2\hat{\mu})^T{\hat{\Sigma}}^{-1}(1_2\hat{\mu}) \sim \chi_1^2$.
+```{r}
+test.stat <- N * sum(sig.inv) * mu^2 
+pval <- 1 - pchisq(test.stat, 1)
+print(pval)
+```
+Since the p-value is $0.583196$, we do not rejec the null hypothesis at $\alpha = 0.05$.
+
+### (6)
+```{r}
+x <- matrix(1,2,1)
+w <- matrix(c(1,0,0,1), 2, 2)
+num.iter <- 1e4
+for(i in 1:num.iter){
+  mu <- 1/N / sum(w) * sum(colSums(w) %*% y)
+  sig <- (y - mu) %*% t(y - mu) / N
+  a <- sum(diag(sig)) / 2
+  b <- sig[1,2]
+  sig <- matrix(c(a,b,b,a), 2,2)
+  w <- solve(sig)
+}
+mu.var <- 1/sum(sig.inv) / N
+print(mu)
+print(sig)
+print(mu.var)
+```
+
+### (7)
+We see that $\hat{\mu}$ is close to $\mu$, and the off diagonal elements of $\hat{\sum}$ is close to those of $\sum$.
+However, the diagonal elements are the average of the true diagonal elements, which makes sense given the restriction of our model.
+
+### (8)
+```{r}
+mu.var.model <- 1 / sum(w)/N
+mu.var.robust <- (1/N)*(1/sum(w)) * sum((colSums(w)%*%(y-mu))^2) * (1/sum(w))*(1/N)
+print(mu.var.model)
+print(mu.var.robust)
+```
+The two variances are close here. However, if they are different, then the robust variance is better to use, since our model is not correct.
+
+## Problem 3
+
+### 5.1.1
+
+```{r}
+col.names = c("group", "id", "cho0", "cho6", "cho12", "cho20", "cho24")
+cho <- read.table("../Downloads/cholesterol-data.txt", na.strings = ".", col.names = col.names)
+head(cho)
+```
+
+### 5.1.2
+```{r}
+means <- c()
+vars <- c()
+sds <- c()
+for(i in 1:2){
+    print(i)
+    mean.this <- colMeans(cho[cho$group==i,-(1:2)], na.rm = TRUE)
+    var.this <- colVars(as.matrix(cho[cho$group==i,-(1:2)]), na.rm = TRUE)
+    sd.this <- colSds(as.matrix(cho[cho$group==i,-c(1:2)]), na.rm = TRUE)
+    means <- rbind(means, mean.this)
+    vars <- rbind(vars, var.this)
+    sds <- rbind(sds, sd.this)
+}
+rownames(means) <- c(1,2)
+rownames(vars) <- c(1,2)
+rownames(sds) <- c(1,2)
+colnames(vars) <- colnames(means)
+colnames(sds) <- colnames(means)
+print(means)
+print(vars)
+print(sds)
+```
+
+### 5.1.3
+```{r}
+occasions <- c(0, 6, 12, 20, 24)
+matplot(occasions, t(means), type="b")
+```
+
+Cholesterol levels increase over time for both groups. 
+Compared to that of the placebo group,
+the cholesterol level of the high-dose group is lower at baseline and the end but higher in the middle.
+
+### 5.1.4
+```{r}
+cho.uni <- c()
+for(i in 1:5){
+    cho.uni.this <- cho[,c(1,2,2+i)]
+    colnames(cho.uni.this) <- c("group", "id", "cho")
+    cho.uni.this$occasion <- occasions[i]
+    cho.uni <- rbind(cho.uni, cho.uni.this)
+}
+head(cho.uni)
+write.table(cho.uni, "biostat653_data_cho.uni", row.names = FALSE, col.names = FALSE)
+```
+
+### 5.1.5
+See SAS output.
+The p-value for the F-statistic for the interaction of group by occasion is $0.0990$,
+so we do not reject the null hypothesis that the patterns of change over time is different in the two groups at $\alpha = 0.05$.
+
+### 5.1.6
+See the SAS output for the covariance matrix ("Estimated R Matrix for ID 1") and the correlation matrix ("Estimated R Correlation Matrix for ID 1")
+
+### 5.1.7
+The model is
+\begin{align*}
+  cholesterol_i & = \beta_0 \\
+  & + \beta_1 I(occasion=6) + \beta_2 I(occasion=12) \\
+  & + \beta_3 I(occasion=20) + \beta_4 I(occasion=24) \\
+  & + \beta_5 I(group=1) \\
+  & + \beta_6 I(group=1)I(occasion=6) + \beta_7 I(group=1)I(occasion=12) \\
+  & + \beta_8 I(group=1)I(occasion=20) + \beta_9 I(group=1)I(occasion=24)
+\end{align*}
+
+### 5.1.8
+\[
+L = 
+\begin{bmatrix}
+0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 
+\end{bmatrix}
+\]
+
+### 5.1.9
+We can simply add up the effects to get the means.
+For example,
+\begin{align*}
+  E[group=2, occasion=0] & = 235.93 \\
+  E[group=2, occasion=6] & = 235.93 + 7.2439 = 243.1739 \\
+  E[group=1, occasion=0] & = 235.93 + (-9.9107) = 226.0193 \\
+  E[group=1, occasion=6] & = 235.93 + (-9.9107) + 7.2439 + 12.2722 = 245.5354
+\end{align*}
+This gives the same result from the group means calculated earlier.
+
+### 5.1.10
+Interpretations: 
+
+$\beta_0$: The mean cholesterol level for an individual in the placebo group at baseline.
+
+$\beta_1$: The mean difference in cholesterol level for an individual in the placebo group from baseline to 6 months after.
+
+$\beta_2$ to $\beta_4$: Similar to $\beta_1$.
+
+$\beta_6$: The mean difference in cholesterol level at baseline from an individual in the placebo group to an individual in the high-dose group.
+
+$\beta_7$: The mean group effect on the difference in cholestorol level from baseline to 6 months after.
+
+$\beta_8$ and $\beta_9$: Similar to $\beta_7$.

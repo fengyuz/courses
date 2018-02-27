@@ -1,0 +1,168 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\newcommand{\hf}{\hat{f}}
+\newcommand{\hF}{\hat{F}}
+\newcommand{\Bern}{\operatorname{Bern}}
+\newcommand{\ltwo}{\overset{L_2}{\to}}
+\newcommand{\pto}{\overset{p}{\to}}
+\newcommand{\dto}{\overset{d}{\to}}
+\newcommand{\iid}{\overset{iid}{\sim}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\R}{\mathbb{R}}
+
+\title{Biostat 801 Homework 9}
+\author{David Zhang}
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+
+From the previous homework, we know that
+\[
+  2na_n\hf_n(x) = \sum Y_{ni}(x)
+\]
+where
+\[
+  B_{n,i}(x) = 1_{[X_i \in (x - a_n, x+a_n]]} \iid \Bern(p_n(x))
+\]
+and
+\[
+  p_n(x) = F((x - a_n, x+a_n]).
+\]
+Moreover, since $a_n \to 0$ and $na_n \to \infty$ as $n \to \infty$,
+we have
+\[
+  p_n(x) \to 0,\quad \frac{p_n(x)}{2a_n} \to f(x), \quad np_n(x) \to
+  \infty.
+\]
+Furthermore,
+\begin{align*}
+  \Var[2na_n\hf_n(x)] = & np_n(x)[1-p_n(x)] \\
+\end{align*}
+and
+\begin{align*}
+  \Cov[2na_n\hf_n(x), 2na_n\hf_n(y)]
+  = & \Cov\left[\sum B_{ni}(x), \sum B_{ni}(y)\right] \\
+  = & \sum_{i,j} \Cov[B_{ni}(x), B_{nj}(y)] \\
+  = & \sum_{i} \Cov[B_{ni}(x), B_{ni}(y)] \to 0
+\end{align*}
+since
+\[
+  (x - a_n, x+ a_n] \cap (y - a_n, y+ a_n] = \emptyset, \quad \forall n > N
+\]
+
+
+Let
+\[
+  Y_n = \sqrt{2na_n}
+  \begin{bmatrix}
+    \hf_n(x) - E \hf_n(x) \\
+    \hf_n(y) - E \hf_n(y)
+  \end{bmatrix}
+\]
+The problem will be the same as last homework if $x = y$, so here we assume $x \neq y$.
+Then
+\begin{align*}
+  \Var[\alpha^T Y_n]
+  = & \frac{1}{2na_n}
+      \{
+      \alpha_1^2 \Var[2na_n\hf_n(x)] \\
+  + & 2\alpha_1\alpha_2 \Cov[2na_n\hf_n(x), 2na_n\hf_n(y)]
+      + \alpha_2^2 \Var[2na_n\hf_n(y)]
+      \} \\
+  \to & \frac{1}{2na_n} \{\alpha_1^2 n p_n(x) [1-p_n(x)]
+        + 0 + \alpha_2^2 n p_n(x) [1-p_n(x)] \\
+  \to & \alpha_1^2 f(x) + \alpha_2^2 f(y)
+\end{align*}
+  
+\section{Problem 2}
+Let $r \geq 1$ and
+\[
+  h(x) := |x|^r
+\]
+Then $h$ is a convex function, so
+\[
+  h(\frac{1}{2} [x + y]) \leq \frac{1}{2} [h(x) + h(y)],
+\]
+that is,
+\[
+  |\frac{1}{2} [x + y]|^r \leq \frac{1}{2} (|x|^r + |y|^r)
+  \Rightarrow |x + y|^r \leq 2^{r-1} (|x|^r + |y|^r)
+\]
+so
+\[
+  E |x + y|^r \leq 2^{r-1} (E|x|^r + E|y|^r)
+\]
+
+\section{Problem 3}
+
+We show that $Y_n \dto N(0, D)$ where
+\[
+  D =
+  \begin{bmatrix}
+    f(x) & 0 \\
+    0 & f(y)
+  \end{bmatrix}
+\]
+By Cramer-Wold, we just need to show
+\[
+  \alpha^T Y_n \dto N(0, C)
+\]
+where
+\[
+  C = \alpha^T D \alpha =
+  \begin{bmatrix}
+    \alpha_1^2 f(x) & 0 \\
+    0 & \alpha_2^2 f(y)
+  \end{bmatrix}
+\]
+for arbitrary $\alpha \in \R^2$.  We check the Lyapunov condition.
+Let
+\[
+  A_{ni}(x,y) = \alpha_1 B_{ni}(x) + \alpha_2 B_{ni}(y)
+\]
+We have
+\begin{align*}
+  & \sum E|A_{ni}(x,y) - E[A_{ni}(x,y)]|^3 \\
+  \leq & \sum \{\alpha_1[1+p_n(x)] + \alpha_2 [1+p_n(y)] \} E|A_{ni}(x,y) - E[A_{ni}(x,y)]|^2 \\
+  = & \sum \{\alpha_1[1+p_n(x)] + \alpha_2 [1+p_n(y)] \} \Var[A_{ni}(x,y)] \\
+  = & n \{\alpha_1[1+p_n(x)] + \alpha_2 [1+p_n(y)] \} \Var[A_{n1}(x,y)]
+\end{align*}
+Then
+\begin{align*}
+  & \frac{\sum E|A_{ni}(x,y) - E[A_{ni}(x,y)]|^3}{\{\sum \Var[A_{n1}(x,y)]\}^\frac{3}{2}}  \\
+  = & \frac{n \{\alpha_1[1+p_n(x)] + \alpha_2 [1+p_n(y)] \} \Var[A_{n1}(x,y)]}{\{n\Var[A_{n1}(x,y)]\}^\frac{3}{2}} \\
+  = & \frac{\alpha_1[1+p_n(x)] + \alpha_2 [1+p_n(y)]}{\sqrt{n\Var[A_{n1}(x,y)]}} \to 0
+\end{align*}
+since
+\begin{align*}
+  n\Var[A_{n1}(x,y)] \to & \alpha_1 np_n(x) + 2\alpha_1\alpha_2p_n(x)p_n(y) + \alpha_2^2 p_n(y) \to \infty
+\end{align*}
+Thus the Lyapunov condition holds, so
+\[
+  \frac{2na_n(A_{ni}(x,y) - E[A_{ni}(x,y)])}{\sqrt{\alpha_1 np_n(x)[1-p_n(x)] + \alpha_2 np_n(y)[1-p_n(y)]}} \dto N(0, 1) = (*)
+\]
+By Slutsky,
+\begin{align*}
+  Y_n = & (*) \frac{\sqrt{\alpha_1 np_n(x)[1-p_n(x)] + \alpha_2 np_n(y)[1-p_n(y)]}}{2na_n} \\
+  = & N(0, 1)\sqrt{\alpha_1 f(x) + \alpha_2 f(y)}
+\end{align*}
+This completes the proof.
+
+\section{Problem 4}
+
+This follows from the same argument as in the previous homework.
+We have
+\begin{align*}
+  & \sqrt{2na_n}(\alpha_1 (E\hf_n(x) - f(x)) + \alpha_2 (E\hf_n(y) - f(y))) \\ = & \sqrt{2na_n^3}[\alpha_1 f'(x) + \alpha_2 f'(y) + O(1)]
+\end{align*}
+so we need
+
+\[
+  na_n^3 \to 0
+\]
+\end{document}

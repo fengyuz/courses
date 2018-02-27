@@ -1,0 +1,37 @@
+---
+title: "Biostat 651 Hw 1"
+author: "David (Daiwei) Zhang"
+date: "January 25, 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Problem 4(a)
+
+```{r}
+require(readxl)
+x <- read_excel("dobson6.3.xls", skip = 2)
+par(mfrow=c(2,2))
+plot(x$age, x$carbohydrate)
+plot(x$weight, x$carbohydrate)
+plot(x$protein, x$carbohydrate)
+
+```
+
+# Problem 4(b)
+
+```{r}
+lmfit <- lm(carbohydrate ~ age + weight + protein, data=x)
+summary(lmfit)
+plot(fitted(lmfit), resid(lmfit))
+abline(0,0)
+```
+
+# Problem 4(c)
+```{r}
+lmfit2 <- lm(carbohydrate ~ age + protein, data=x)
+summary(lmfit2)
+```

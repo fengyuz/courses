@@ -1,0 +1,54 @@
+\documentclass{article}
+\usepackage{amsmath}
+\title{Biostat 830 Homework 1}
+\author{David (Daiwei) Zhang}
+\begin{document}
+\maketitle
+\section{Problem}
+We wan to minimize
+$$
+EPE(f) = \int \int |y - f(x)| P(dy) P(dx),
+$$
+so we find a $f$ that minimizes
+\begin{align*}
+  EPE(f) = & \int |y - f(x)| P(dy) \\
+  = & \int_{-\infty}^{f(x)} [f(x) - y] P(dy) + \int_{f(x)}^{\infty} [y - f(x)] P(dy)
+\end{align*}
+By Leibniz's Rule, we have
+\begin{align*}
+  \frac{\partial}{\partial f} EPE
+  = & \int_{-\infty}^{f(x)} 1 P(dy) + f(x) - f(x) 
+      + \int_{f(x)}^{\infty} (-1) P(dy) + f(x) - f(x) \\
+  = & \int_{-\infty}^{f(x)} P(dy) - \int_{f(x)}^{\infty} P(dy) 
+\end{align*}
+Then when $\frac{\partial}{\partial f} EPE = 0$, we have 
+\[
+  \int_{-\infty}^{f(x)} P(dy) = \int_{f(x)}^{\infty} P(dy),
+\]
+that is, $f(x) = Median(Y | X = x)$.
+
+\section{Problem}
+
+For the least square estimator, we have
+\[
+  Y^{pred} = X^{pred} (X^T X)^{-1} X^T Y,
+\]
+so
+\[
+  Y^{pred}_i = \sum_j w_{i,j} Y_j,
+\]
+where
+\[
+  w_{i,j} = x^{pred}_i (X^TX)^{-1} x_i^T = x^{pred}_i x_i^T
+\] 
+assuming orthonormal design (i.e. $X^TX = I$),
+and $x_i$ is the $i^\text{th}$ row of $X$
+(and the same notation applies to $x^{pred}_i$).
+Since $\{x_i\}$ is an orthonormal basis, we can interpret that the weight of the
+$j^\text{th}$ training response's effect on the $i^\text{th}$ testing response
+is equal to the $i^\text{th}$ testing predictor's $j^\text{th}$ coefficient when written
+in the basis of the training predictors.
+
+
+ 
+\end{document}

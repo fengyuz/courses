@@ -1,0 +1,138 @@
+\documentclass{article}
+
+\usepackage{amsmath, amssymb}
+\usepackage{cleveref}
+
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\mb}[1]{\mathbb{#1}}
+\newcommand{\as}{\;a.s.\;}
+\newcommand{\pto}{\overset{P}{\to}}
+\newcommand{\asto}{\overset{\as}{\to}}
+\newcommand{\wto}{\overset{w}{\to}}
+\newcommand{\dto}{\Rightarrow}
+\newcommand{\lpto}{\overset{L_p}{\to}}
+\newcommand{\iid}{\overset{\text{iid}}{\sim}}
+\newcommand{\deq}{\overset{d}{=}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathcal{C}}
+\newcommand{\B}{\mathcal{B}}
+
+\begin{document}
+
+\section{Convergence}
+\begin{enumerate}
+\item Convergence a.s. implies convergence i.p.
+\item
+  \begin{enumerate}
+  \item Convergence i.p. iff Cauchy i.p.
+  \item $X_n \pto X$ iff each subsequence ${X_{n_k}}$ contains a
+    further subsequence $X_{n_{k(i)}} \asto X$.
+  \end{enumerate}
+\item Let $EX_n < \infty$. Then ${X_n}$ is ui iff
+  \begin{enumerate}
+  \item $\sup_n \int_A |X_n| dP \to 0$ for $P(A) \to 0$ with
+    $A \in \B$.
+  \item $\sup_n E|X_n| < \infty$
+  \end{enumerate}
+\item $\{|X_n|^p\}$ is ui if $\sup_n E(|X_n|^{p+\delta}) < \infty$ for
+  some $\delta > 0$.
+\item Let $p \geq 1$ and $X_n \in L_p$. The following are equivalent:
+  \begin{enumerate}
+  \item $X_n$ is $L_p$ convergent.
+  \item $X_n$ is $L_p$ Cauchy ($\|X_n - X_m\|_p \to 0$).
+  \item $|X_n|^p$ is ui and $X_n$ converges ip.
+  \end{enumerate}
+\end{enumerate}
+
+\section{Law of Large Numbers}
+\begin{enumerate}
+\item General weak law of large numbers: If $\{X_n\}$ are independent,
+  \[
+    \sum_{j=1}^n P[|X_j| > n] \to 0,
+  \]
+  and
+  \[
+    \frac{1}{n^2} \sum_{j=1}^n EX_j^21_{[|X_j| \leq n]} \to 0,
+  \]
+  then
+  \[
+    \frac{S_n - a_n}{n} \pto 0,
+  \]
+  where \[ a_n = \sum_{j=1}^n E(X_j 1_{[|X_j| \leq n]}).
+  \]
+\item If $\{X_n\}$ is independent, then TFAE:
+  \begin{enumerate}
+  \item $S_n$ converges i.p.
+  \item $S_n$ is Cauchy i.p.
+  \item $S_n$ converges a.s.
+  \item $S_n$ is Cauchy a.s.
+  \end{enumerate}
+\item If $\{X_n\}$ is independent and $\sum_n Var(X_n) < \infty$, then
+  $\sum_n(X_n - \mu_n)$ converges a.s. and $L_2$.
+\item If $X_n$ is iid, then
+  \begin{align*}
+    E|X_1| & < \infty \Rightarrow \bar{X}_n \asto \mu \\
+    EX_1^2 & < \infty \Rightarrow S_n^2 \asto \sigma^2
+  \end{align*}
+\item Let $X_n$ be independent. Then $\sum_n X_n$ converges a.s. if
+  and only if there exists $c > 0$ such that
+  \begin{enumerate}
+  \item $\sum_n P[|X_n| >c] < \infty$
+  \item $\sum_n Var(X_n 1_{[|X_n| \leq c]}) < \infty$
+  \item $\sum_n E(X_n 1_{[|X_n| \leq c]})$ converges
+  \end{enumerate}
+\end{enumerate}
+
+\section{Convergence in Distribution}
+\begin{enumerate}
+\item Thm: If $F$ is proper, then all four convergence are
+  equivalent. (Write $F_n \Rightarrow F$.)
+\item Thm (Scheffe):
+  \[
+    \sup_{B \in \B(\R)} |F_n(B) - F(B)| = \frac{1}{2} \int |f_n(x) -
+    f(x)| dx
+  \]
+\item Thm (Baby Shorohod): If $X_n \Rightarrow X_0$, then there exist
+  $X_n^\#$ on $([0,1], \B([0,1]), \lambda)$ such that
+  $X_n \deq X_n^\#$ and $X_n^\# \asto X_0^\#$.
+\item Thm (Continuous mapping): If $X_n \Rightarrow X_0$ and
+  $h: \R \to \R$ satisfies $P[X_0 \in (\C(h))^c] = 0$, then
+  $h(X_n) \Rightarrow h(X_0)$. Moreover, if $h$ is bounded, then
+  $Eh(X_n)\to Eh(X_0)$.
+\item Thm (Delta method):
+  \[
+    \sqrt{n} \left(\frac{g(\bar{X}) - g(\mu)}{\sigma g'(\mu)} \right)
+    \Rightarrow N(0,1)
+  \]
+\item Thm (Portmanteau): Let $F_n$ be proper. TFAE:
+  \begin{enumerate}
+  \item $F_n \Rightarrow F_0$
+  \item $Eg(X_n) \to Eg(X_0)$ for any bounded continuous
+    $g: \R \to \R$.
+  \item $F_n(A) \to F(A)$ for any $A \in \B(\R)$ with
+    $F_0(\partial(A)) = 0$ (boundary has zero probability).
+  \end{enumerate}
+\item Thm (Slutsky): If $X_n \dto X$ and $X_n - Y_n \pto 0$, then
+\item Thm (Convergence to type):
+  \begin{enumerate}
+  \item If
+    \begin{align}\label{one}
+      \frac{X_n - b_n}{a_n} \dto U, \quad \frac{X_n -
+      \beta_n}{\alpha_n} \dto V,
+    \end{align}
+    then
+    \begin{align}\label{two}
+      \frac{\alpha_n}{a_n} \to A > 0, \quad \frac{\beta_n - b_n}{a_n}
+      \to B \in \R
+    \end{align}
+    and
+    \begin{align}\label{three}
+      V \deq \frac{U-B}{A}.
+    \end{align}
+  \item If \cref{two} holds, then either of \cref{one} implies the
+    other and \cref{three} holds.
+  \end{enumerate}
+\end{enumerate}
+
+\section{Central Limit Theorem}
+\end{document}

@@ -1,0 +1,286 @@
+\documentclass[10pt,landscape]{article}
+\usepackage{multicol}
+\usepackage{calc}
+\usepackage{ifthen}
+\usepackage[landscape]{geometry}
+\usepackage{amsmath,amsthm,amsfonts,amssymb}
+\usepackage{color,graphicx,overpic}
+\usepackage{hyperref}
+\usepackage{bm}
+
+\newcommand{\Beta}{\operatorname{Beta}}
+\newcommand{\Binom}{\operatorname{Binom}}
+\newcommand{\NegBinom}{\operatorname{Neg-Binom}}
+\newcommand{\N}{\operatorname{N}}
+\newcommand{\G}{\operatorname{G}}
+\newcommand{\Multinom}{\operatorname{Multinom}}
+\newcommand{\Dirich}{\operatorname{Dirichlet}}
+\newcommand{\MVN}{\operatorname{MVN}}
+\newcommand{\W}{\operatorname{W}}
+\newcommand{\iid}{\overset{\text{iid}}{\sim}}
+
+
+
+\pdfinfo{
+  /Title (example.pdf)
+  /Creator (TeX)
+  /Producer (pdfTeX 1.40.0)
+  /Author (Seamus)
+  /Subject (Example)
+  /Keywords (pdflatex, latex,pdftex,tex)}
+
+% This sets page margins to .5 inch if using letter paper, and to 1cm
+% if using A4 paper. (This probably isn't strictly necessary.)
+% If using another size paper, use default 1cm margins.
+\ifthenelse{\lengthtest { \paperwidth = 11in}}
+    { \geometry{top=.5in,left=.5in,right=.5in,bottom=.5in} }
+    {\ifthenelse{ \lengthtest{ \paperwidth = 297mm}}
+        {\geometry{top=1cm,left=1cm,right=1cm,bottom=1cm} }
+        {\geometry{top=1cm,left=1cm,right=1cm,bottom=1cm} }
+    }
+
+% Turn off header and footer
+\pagestyle{empty}
+
+% Redefine section commands to use less space
+\makeatletter
+\renewcommand{\section}{\@startsection{section}{1}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%x
+                                {\normalfont\large\bfseries}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{0mm}%
+                                {-1explus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%
+                                {\normalfont\normalsize\bfseries}}
+\renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {1ex plus .2ex}%
+                                {\normalfont\small\bfseries}}
+\makeatother
+
+% Define BibTeX command
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+% Don't print section numbers
+\setcounter{secnumdepth}{0}
+
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt plus 0.5ex}
+
+%My Environments
+\newtheorem{example}[section]{Example}
+% -----------------------------------------------------------------------
+
+\begin{document}
+\raggedright
+\footnotesize
+\begin{multicols}{3}
+
+
+% multicol parameters
+% These lengths are set only within the two main columns
+%\setlength{\columnseprule}{0.25pt}
+\setlength{\premulticols}{1pt}
+\setlength{\postmulticols}{1pt}
+\setlength{\multicolsep}{1pt}
+\setlength{\columnsep}{2pt}
+
+% \begin{center}
+%      \Large{\underline{Biostat 682 Summary}} \\
+% \end{center}
+
+\begin{enumerate}
+% \item Credibility interval: The $1-\alpha$ CI often has coverage less than $1-\alpha$, since it is conditional on the data. 
+% \item Hypothesis testing: $H_0: \theta = \theta_0$, $H_1:\theta \neq \theta_0$.
+%   \[
+%   \pi(\theta) = \pi_0 \delta_{\theta_0} + (1-\pi)g(\theta)
+%   \]
+% \item Prediction
+%   \begin{enumerate}
+%   \item Prior prediction
+%   \[
+%       \pi(\tilde{y})
+%       = \int \pi(\tilde{y}, \theta) d\theta
+%       = \int \pi(\tilde{y} | \theta) \pi(\theta) d\theta
+%   \]
+%   \item Prior prediction
+%   \[
+%       \pi(\tilde{y} | y)
+%       = \int \pi(\tilde{y} | \theta) \pi(\theta|y) d\theta
+%   \]
+%   \end{enumerate}
+% \item Common Distributions
+%   \begin{enumerate}
+%   \item Normal
+%   \item Beta
+%   \item Binomomial
+%   \item Gamma
+%   \item Inverse-Gamma
+%   \item Poisson
+%   \item Negative Binomomial
+%   \item t
+%   \item Chi-squred
+%   \item Multinomial
+%   \item Dirichlet
+%   \end{enumerate}
+% \item Beta distribution
+%   \[
+%       \pi(\theta | \alpha, \beta) = \frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)} \theta^{\alpha-1} (1-\theta)^{\beta-1}
+%   \]
+%   \[
+%       E(\theta) = \frac{\alpha}{\alpha+\beta}, \quad
+%       Var(\theta) = \frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}
+%   \]
+%   \[
+%       B(x,y)
+%       = \int_0^1 t^{x-1}(1-t)^{y-1}dt
+%       = \frac{\Gamma(x) \Gamma(y)}{\Gamma(x+y)}
+%   \]
+%   \[
+%       {n \choose m} = \frac{\Gamma(n+1)}{\Gamma(m+1)\Gamma(n-m+1)}
+%   \]
+\item Scale mixture of normal dist:
+  If
+  \begin{align*}
+    \theta | \mu, \sigma^2, k & \sim \N(\mu, \frac{\sigma^2}{k}), \quad k \sim \G(\frac{\nu}{2}, \frac{\nu}{2}),
+  \end{align*}
+  then
+  \[
+    \theta \sim t_\nu(\mu, \sigma^2)
+  \]
+\item Beta model
+  \begin{align*}
+    y | \theta & \sim \Binom(n, \theta) \\
+    \theta & \sim \Beta(\alpha, \beta) \quad(\text{Jeffrey: } \alpha = \beta = \frac{1}{2})\\
+    \theta | y & \sim \Beta(\alpha + y, \beta + n - y)
+  \end{align*}
+\item Normal model (Known variance, unknown mean)
+  \begin{align*}
+          \pi(y | \mu) & = (2\pi\sigma^2)^{-n/2} \exp\{-(2\sigma^2)^{-1}\sum_{i=1}^n(y_i - \mu)^2\} \\
+    \mu & \sim \N(\zeta, \tau^2), \quad(\text{Jeffrey: } \pi(\mu) \propto 1) \\
+    \mu | y & \sim \N(\zeta', \tau'^2) \\
+      \zeta' & = (n\sigma^{-2} + \tau^{-2})^{-1}(n\sigma^{-2}\bar{y} + \tau^{-2}\zeta) \\
+      \tau'^2 & = (n\sigma^{-2} + \tau^{-2})^{-1} \\
+      \tilde{y} | y & \sim \N(\zeta', \sigma^2 + \tau'^2)
+  \end{align*}
+\item Normal model (Known mean, unknown variance)
+  \begin{align*}
+    y | \sigma^2 & \propto (\sigma^2)^{-\frac{n}{2}}\exp\{-\frac{1}{2}\sum(y_i-\mu)^2 (\sigma^2)^{-1}\}\\
+    \sigma^2 & \sim \G^{-1}(\alpha, \beta) \quad(\text{Jeffrey: } \alpha=1,\; \beta=0)\\
+    \sigma^2 | y & \sim \G^{-1}(\frac{n}{2} + \alpha, \frac{1}{2}\sum(y_i - \mu)^2 + \beta)
+  \end{align*}
+\item Poisson model
+  \begin{align*}
+    \pi(y|\theta) & \propto \theta^y \exp\{-\theta\} \\
+    \theta & \sim \G(\alpha, \beta), \quad \theta | y \sim \G(\alpha+n\bar{y}, \beta + n) \\
+    \tilde{y} & \sim \NegBinom(\alpha, \beta)
+  \end{align*}
+  $\tilde{y}$: \# failures, $\alpha$: \# success until stop, $\beta$: odds of success
+\item Jeffrey's prior
+  \[
+    \pi(\theta) \propto [I(\theta)]^{\frac{1}{2}}, \quad
+    I(\theta) = -E[\frac{d^2}{d\theta^2} \log \pi(y|\theta)]
+  \]
+\item Noninformative priors for pivital quantities
+  \begin{enumerate}
+  \item Location: $\pi(y-\theta | \theta) = f(y-\theta)$ \Rightarrow $\pi(\theta) \propto 1$. \\
+  \item Scale: $\pi(y/\theta | \theta) = f(y/\theta)$ \Rightarrow $\pi(\theta) \propto \theta^{-1}$
+  \end{enumerate}
+\item Normal model \\
+  (Unknown mean and variance, noninformative prior)
+  \begin{align*}
+    y_1, \ldots, y_n | \mu, \sigma^2 & \iid \N(\mu, \sigma^2)
+    \pi(\mu, \sigma^{-2}) \propto (\sigma^{-2})^{-1} \\
+    \pi(\mu, \sigma^{-2}|y) & \propto (\sigma^{-2})^{\frac{n}{2}-1} \exp\{-\frac{\sigma^{-2}}{2}[(n-1)s^2 + n(\bar{y} - \mu)^2]\} \\
+    \sigma^{-2}|y & \sim \G(\frac{n-1}{2}, \frac{(n-1)s^2}{2}), \quad \mu | \sigma^{-2}, y \sim \N(\bar{y}, \frac{\sigma^2}{n}) \\
+    \mu|y & \sim t_{n-1}(\bar{y}, \frac{s}{\sqrt{n}}) \\
+    \tilde{y} | y & \sim t_{n-1}(\bar{y}, (1+\frac{1}{n})s^2) \;(\text{Scale mix norm, $k = \frac{s^2}{\sigma^2}$})
+  \end{align*}
+\item Normal model \\
+  (Unknown mean and variance, conjugate prior)
+  \begin{align*}
+    \sigma^{-2} & \sim \G(\frac{\nu}{2}, \frac{\nu\tau^2}{2}), \quad \mu | \sigma^{-2} \sim \N(\theta, \frac{\sigma^2}{k}) \\
+    \sigma^{-2} | y & \sim \G(\frac{\nu+n}{2}, \frac{\nu\tau^2 + (n-1)s^2+\frac{kn}{k+n}(\bar{y}-\theta)^2}{2}) \\
+    \mu | \sigma^{-2}, y & \sim \N(\frac{k\theta+n\bar{y}}{k+n}, \frac{\sigma^2}{k+n}) \\
+    \mu | y & \sim t_{\nu+k}\left(\frac{k\theta+n\bar{y}}{k+n}, \frac{\nu\tau^2+(n-1)s^2+\frac{kn}{k+n}(\bar{y}-\theta)^2}{(\nu+n)(k+n)}\right)
+  \end{align*}
+\item Multinomial model
+  \begin{align*}
+    y | \theta & \sim \Multinom(\theta), \quad \theta = (\theta_1, \ldots, \theta_n)^T, \quad \sum \theta_i = 1 \\
+    \theta & \sim \Dirich(\alpha_1, \ldots, \alpha_n), \quad 
+    \theta | y \sim \Dirich(\alpha_1 + y_1, \ldots, \alpha_n + y_n)
+  \end{align*}
+\item Multivariate Normal \\
+  ($\Sigma$ known, $\mu$ unknown, Conjugate prior)
+    \begin{align*}
+      y_i | \mu, \Sigma & \iid \MVN(\mu, \Sigma), \quad \underset{d \times n}{Y} = (y_1, \ldots, y_n)\\
+      \mu & \sim \MVN(\theta, \Lambda), \quad \mu | Y \sim \MVN(\mu_p, \Lambda_p) \\
+      \mu_p & = (\Lambda^{-1} + n\Sigma^{-1})^{-1}(\Lambda^{-1}\theta + n\Sigma^{-1}\bar{y}) \\
+      \Lambda_p & = (\Lambda^{-1} + n\Sigma^{-1})^{-1} \\
+      \mu_1 | \mu_2, Y & \sim \MVN(\mu_{p,1} + \Lambda_{p,12}\Lambda_{p,22}^{-1}(\mu_2 - \mu_{p,2}), \Lambda_{p,1|2}) \\
+      \Lambda_{p,1|2} & = \Lambda_{p,11} - \Lambda_{p,12}\Lambda_{p,22}^{-1}\Lambda_{p,21} \\
+      \mu_1 | Y & \sim \MVN(\mu_{p,1}, \Lambda_{p,11}) \\
+      \tilde{y} | Y & \sim \MVN(\mu_p, \Lambda_p + \Sigma)
+    \end{align*}
+\item Multivariate Normal \\
+  ($\Sigma$ known, $\mu$ unknown, Noninformative prior)
+  \begin{align*}
+      \pi(\mu) & \propto 1, \quad \mu | Y \sim \MVN(\bar{y}, \frac{\Sigma}{n})
+  \end{align*}
+\item Multivariate Normal \\
+  ($\Sigma$, $\mu$ unknown, Conjugate prior)
+  \begin{align*}
+    \Sigma^{-1} & \sim \W(\nu, \Lambda), \quad \mu | \Sigma^{-1} \sim \N(\theta, \frac{\Sigma}{k}) \\
+    \Sigma^{-1} | Y & \sim \W(\nu_p, \Lambda_p) \\
+    \nu_p & = n + \nu, \quad \Lambda_p = \left(\Lambda^{-1}+S+\frac{kn}{k+n}(\theta-\bar{y})(\theta-\bar{y})^T\right)^{-1} \\
+    \mu | Y, \Sigma^{-1} & \sim \MVN \left(\frac{k}{k+n}\theta + \frac{n}{k+n}\bar{y}, \frac{\Sigma}{k+n}\right) \\
+    \mu | Y & \sim t_{\nu+n-d+1}\left(\frac{k\theta+n\bar{y}}{k+n}, \frac{\Lambda_p^{-1}}{(k+n)(\nu+n-d+1)}\right) \\
+    \tilde{y} | Y & \sim t_{v+n-d+1}\left(\frac{k\theta+n\bar{y}}{k+n}, \left(1 + \frac{1}{k+n}\right)\frac{\Lambda_p^{-1}}{v+n-d+1}\right)
+  \end{align*}
+\item Multivariate Normal \\
+  ($\Sigma$, $\mu$ unknown, Noninformative prior)
+  \begin{align*}
+    \pi(\mu,\Sigma) & \propto |\Sigma|^{\frac{-(d+1)}{2}} \quad (\text{let } k \to 0, \nu \to -1, \Lambda^{-1} \to 0) \\
+    \Sigma^{-1} | Y & \sim \W(n-1, S^{-1}), \quad \mu|Y, \Sigma^{-1} \sim \MVN(\bar{y}, \frac{\Sigma}{n}) \\
+    \mu | Y & \sim t_{n-d}\left(\bar{y}, \frac{S}{n(n-d)}\right) \\
+    \tilde{y} | Y & \sim t_{n-d}\left(\bar{y}, \left(1 + \frac{1}{n}\right) \frac{S}{n-d} \right), \quad S = \sum_{i=1}^n (y_i - \bar{y})(y_i-\bar{y})^T
+  \end{align*}
+\item Wishart distribution:
+  If $z_1, \ldots, z_\nu \sim \MVN(0, \Lambda)$, then $\Sigma^{-1} = \sum_{l=1}^\nu z_l z_l^T \sim \W(\nu, \Lambda)$ and $\Sigma \sim W^{-1}(\nu, \Lambda^{-1})$.
+\item Normal approximation
+  \begin{align*}
+    \pi(\theta|y) & \approx \N(\bm{\hat{\theta}}^\pi, I^\pi(y)^{-1}) \\
+    I_{ij}^\pi(y) & = -[\frac{\partial^2}{\partial\theta_i\partial\theta_j} \log\{\pi(y|\bm{\theta})\pi(\bm{\theta})\}]_{\bm{\theta} = \bm{\hat{\theta}}^\pi} \\
+    \quad \bm{\hat{\theta}}^\pi & = \text{posterior mode}
+  \end{align*}
+\item Laplace's method
+  \begin{align*}
+    I & = \int f(\bm{\theta}) \exp\{-nh(\bm{\theta})\}d\bm{\theta} \quad (\text{$\exp\{-nh(\bm{\theta})\} \propto$ posterior}) 
+  \end{align*}
+  $f$ is smooth, positive; $h$ is smooth, has unique min at $\bm{\theta}$.
+  \begin{align*}
+    \hat{I} & = f(\bm{\hat{\theta}})(\frac{2\pi}{n})^{\frac{m}{2}} |\bm{\hat{\Sigma}}|^{\frac{1}{2}} \exp\{-nh(\bm{\hat{\theta}})\}\{1 + \mathcal{O}(n^{-1})\} \\
+    \bm{\hat{\Sigma}} & = [D^2h(\bm{\hat{\theta}})]^{-1} \\
+    E[g(\bm{\theta})] & = g(\bm{\hat{\theta}}) + \{1 + \mathcal{O}(n^{-1})\} \\
+    E[g(\bm{\theta})] & = \frac{\int\exp\{\log[g(\bm{\theta})] - nh(\bm{\theta})\}d\bm{\theta}}{\int\exp\{-nh(\bm{\theta})\}d\bm{\theta}} = \frac{\int\exp\{-nh^*(\bm{\theta})\}d\bm{\theta}}{\int\exp\{-nh(\bm{\theta})\}d\bm{\theta}} \\
+            & = \frac{|\bm{\tilde{\Sigma}}^*|^{\frac{1}{2}} \exp\{-nh^*(\bm{\tilde{\theta}})\}}{|\bm{\hat{\Sigma}}|^{\frac{1}{2}} \exp\{-nh^*(\bm{\hat{\theta}})\}}\{1+\mathcal{O}(n^{-2})\} \\
+    \hat{\pi}(\theta_1 | y) & \propto |\bm{\hat{\Sigma}}(\theta_1)|^\frac{1}{2} \exp\{-nh(\theta_1, \bm{\hat{\theta}_2}(\theta_1))\} \\
+    h(\theta_1, \bm{\theta_2}) & = -\frac{1}{n}\log\{\pi(y|\theta_1, \bm{\theta_2}) \pi(\theta_1, \bm{\theta_2})\}
+  \end{align*}
+\item Direct sampling: Draw samples to simulate population
+  \begin{align*}
+    p & := P[a < \theta < b | \bm{y}] \\
+    \hat{p} & = \frac{1}{N} \sum_{j=1}^N I_{(a,b)}(\theta_j) \\
+    \hat{p} & = \frac{1}{Nh_N} \sum_{j=1}^N K\left(\frac{\theta-\theta_j}{h_N}\right),\; h_N \to 0, Nh_N \to \infty \text{ as } N \to \infty
+  \end{align*}
+\item Importance sampling
+  \begin{align*}
+    E[h(\theta)|y] & = \frac{\int h(\theta) w(\theta) g(\theta) d\theta}{\int w(\theta) g(\theta) d\theta}
+                     \approx \frac{\sum_j h(\theta_j)w(\theta_j)}{\sum_j w(\theta_j)}
+  \end{align*}
+  where $g(\theta) \approx \pi(\theta | y)$, $\theta_j \sim g(\theta)$, $w(\theta) = \pi(y|\theta)\pi(\theta)/g(\theta)$
+\end{enumerate}
+\end{multicols}
+\end{document}

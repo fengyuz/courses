@@ -1,0 +1,8 @@
+model{
+	for (i in 1:N1){
+		s[i] ~ dbin(p[i], n[i])			
+		p[i] <- pow(d[i], exp(theta))
+	}
+	theta ~ dunif(low, high)
+}
+

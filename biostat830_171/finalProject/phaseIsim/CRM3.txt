@@ -1,0 +1,55 @@
+
+
+			INPUT DATA
+
+
+number of simulations ...... 1000
+number of patients ......... 30
+dose levels ................ -5.94 -5.20 -4.39 -3.85 -3.00 
+probability of toxicity:
+ 0.05 0.10 0.20 0.30 0.50 
+target toxicity level ..... 0.3
+
+functional form: logistic
+prior distribution of the parameter:
+	number of sampled prior 1
+	GAMMA distribution:
+		a=  1
+		b=  1
+modified CRM
+patients treated at a level to decide MTD .... 6
+patients treated simultaneously at a level ... 3
+minimum number of patients in the CRM design ....... 18
+number of burn-in iterations in MCMC ....... 1000
+number of production iterations in MCMC .... 1000
+toxicity from given toxicity probabilities
+random seed .......................... 10
+name of the output file:  CRM3.txt
+
+
+			OUTPUT RESULTS
+
+
+|-------------------|-------------------------------|
+| dose levels       | 1     2     3     4     5     |
+|===================|===============================|
+| avg # of toxicity | 0.2   0.4   1.0   1.4   1.0   |
+|-------------------|-------------------------------|
+| avg # at dose     | 3.7   3.8   5.0   4.7   1.9   |
+|===================|===============================|
+| % dose toxicity   |  4.9  10.2  20.7  29.5  48.9  |
+|-------------------|-------------------------------|
+| % patients        | 19.2  19.7  26.1  24.8  10.2  |
+|-------------------|-------------------------------|
+| % of MTD dose     |  0.0   6.1  26.2  47.4  20.3  |
+|-------------------|-------------------------------|
+
+
+average number of patients for one simulation ... 19.02
+
+overall toxicity ...............................  20.7 %
+
+
+mean value of theta ........................ 1.04
+standard deviation of theta ................ 0.21
+out of patients .......................... 0 %

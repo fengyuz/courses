@@ -1,0 +1,125 @@
+\documentclass{article}[12pt]
+\usepackage{amsmath}
+
+\newcommand{\pto}{\overset{P}{\to}}
+\newcommand{\dto}{\overset{d}{\to}}
+\newcommand{\as}{\;a.s.\;}
+\newcommand{\asto}{\overset{\as}{\to}}
+
+\title{Biostat 801 Homework 6}
+\author{David Zhang}
+
+\begin{document}
+\maketitle
+
+\section{Problem}
+
+Let $m \geq 1$.
+Then
+\begin{align*}
+  P[|X-Y| > 1/m]
+  & \leq P[|X-X_n| + |Y-X_n| > \frac{1}{m}] \\
+  & \leq P([|X-X_n| > \frac{1}{2m}] \cup [|Y-X_n| > \frac{1}{2m}]) \\
+  & \leq P[|X-X_n| > \frac{1}{2m}] + P[|Y-X_n| > \frac{1}{2m}] \\
+  & \to 0 \text{ as } n \to \infty.
+\end{align*}
+Thus $P[|X-Y| > \frac{1}{m}] = 0$.
+Then
+\begin{align*}
+  P[X \neq Y]
+  & = P[|X-Y|>0]
+    = P(\bigcup_{m=1}^\infty [|X-Y| > \frac{1}{m}]) \\
+  & = \lim_{m \to \infty} P[|X-Y| > \frac{1}{m}]
+    = \lim_{m \to \infty} 0
+    = 0
+\end{align*}
+
+\section{Problem}
+
+\subsection{}
+
+We have
+\begin{align*}
+  P[||X|-|X_n|| < \epsilon]
+  & \leq P[|X - X_n| < \epsilon]
+    \to 0.
+\end{align*}
+Thus $|X_n| \pto |X_n|$.
+
+\subsection{}
+
+\begin{enumerate}
+\item To show: $X_n Y \pto XY$. \\
+  Proof: We have
+  \begin{align*}
+    & P[|X_n Y - XY| > \epsilon] \\
+    = & P[|X_n-X||Y| > \epsilon] \\
+    = & P([|X_n-X||Y| > \epsilon] \cap  [|Y| > M]) \cup ([|X_n-X||Y| > \epsilon] \cap  [|Y| \leq M]) \\
+    \leq & P[|Y| > M] + P[|X_n-X|M > \epsilon] \\
+    \to & P[|Y| > M] \text{ as } n \to \infty
+  \end{align*}
+  Since $M \geq 1$ is arbitrary and $P[|Y| > M] \to 0$ as $M \to \infty$,
+  we conclude that $\lim_{n \to \infty} P[|X_nY - XY| > \epsilon] = 0$.
+\item To show: $X_n Y_n \pto X Y_n$. \\
+  Proof: Following the previous arguement, we have
+  \begin{align*}
+    P[|X_n Y - XY| > \epsilon] \leq P[|Y_n| > M] + P[|X_n-X|M > \epsilon] 
+  \end{align*}
+  Since
+  \[
+    Y_n \pto Y \Rightarrow |Y_n| \pto |Y| \Rightarrow |Y_n| \dto |Y|,
+  \]
+  we have
+  \[
+    \lim_{n \to \infty} P[|Y_n| > M] = P[|Y| > M].
+  \]
+  Then
+  \[
+    \lim_{n \to \infty} P[|X_n Y - XY| = P[|Y| > M] \to 0
+  \]
+  as we let $M \to \infty$.
+\item To show: $X_nY_n \pto XY$. \\
+  Proof: We have
+  \begin{align*}
+    & P[|X_nY_n-XY| > \epsilon] \\
+    \leq & P[|X_nY_n-X_nY| + |X_nY-XY| > \epsilon] \\
+    \leq & P[|X_n Y_n - X_n Y| > \frac{\epsilon}{2}] + P[|X_n Y - XY| > \frac{\epsilon}{2}] \\
+    \to & 0 \quad\text{as}\quad n \to \infty.
+  \end{align*}
+\end{enumerate}
+
+\section{Problem}
+
+\subsection{}
+Since $X_n \asto X$,
+\[
+  \lim_{n \to \infty} X_n(\omega) = X(\omega) \quad \forall \omega \in A
+\]
+for some $A \subset \Omega$ with $P(A^C) = 0$.
+Then 
+\[
+  \lim_{n \to \infty} |X_n(\omega)| = |X(\omega)| \quad \forall \omega \in A.
+\]
+Thus $|X_n| \asto |X|$.
+
+\subsection{}
+We have
+\[
+  \lim_{n \to \infty} X_n(\omega) = X(\omega) \quad \forall \omega \in A
+\]
+and
+\[
+  \lim_{n \to \infty} Y_n(\omega) = Y(\omega) \quad \forall \omega \in B
+\]
+for some $A, B \subset \Omega$ with $P(A^C) = P(B^C) = 0$.
+Then
+\[
+  P((AB)^C) = P(A^C \cup B^C) \leq P(A^C) + P(B^C) = 0
+\]
+and
+\[
+  \lim_{n \to \infty} X_n(\omega)Y_n(\omega) = X(\omega)Y(\omega) \quad \forall \omega \in AB.
+\]
+Thus $X_n Y_n \asto XY$.
+
+\end{document}

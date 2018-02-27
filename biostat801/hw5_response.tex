@@ -1,0 +1,122 @@
+\documentclass{article}
+
+\usepackage{amsmath, amssymb}
+\newcommand{\B}{\mathcal{B}}
+
+\title{Biostat 801 Hw 5}
+\author{David Zhang}
+\date{Oct 20, 2017}
+
+\begin{document}
+
+\maketitle
+
+\begin{enumerate}
+\item Problem 1 \\
+    Proof: 
+    \begin{enumerate}
+    \item ($\Rightarrow$)
+    Let $A \in \mathcal{F}$. 
+    Then $A \perp A^C$,
+    so $P(A) P(A^C) = P(AA^C) = P(\phi) = 0$.
+    Thus $P(A) = 0 \;\text{or}\; 1$. \\
+    \item ($\Leftarrow$):
+    Let $A, B \in \mathcal{F}$.
+    Then $P(AB) = 0 \;\text{or}\; 1$.
+    \begin{enumerate}
+    \item If $P(AB) = 0$,
+    then $P(A) = 0$ or $P(B) = 0$, so $P(A) P(B) = 0$.
+    \item If $P(AB) = 1$,
+    then $P(A) = 1$ and $P(B) = 1$, so $P(A) P(B) = 1$.
+    \end{enumerate}
+    In both cases,
+    $P(AB) = P(A)P(B)$,
+    so $A \perp B$.
+    \end{enumerate}
+\item Problem 2 \\
+    Let $(\Omega, \B, P) = ([0,1], \B([0,1]), \lambda)$,
+    where $\lambda$ is the Lebesgue measure.
+    Define
+    \[
+    X(\omega) := 
+    \begin{cases}
+    -1, & \text{if } \omega \in [0, \frac{1}{2}] \\
+    1, & \text{if } \omega \in (\frac{1}{2}, 1]
+    \end{cases}
+    \]
+    and $Y := -X$.
+    Then clearly $Y \not\perp X$.
+    However, $Y^2 = X^2 = 1$,
+    so $Y^2 \perp X^2$ (see Problem 1).
+\item Problem 3 \\
+Proof:
+\begin{enumerate}
+\item $(\Leftarrow)$:
+    Suppose $P[X = a] = 1$.
+    Let $A, B \in \B$.
+    \begin{enumerate}
+    \item If $a \in AB$,
+        then $P[X \in AB] = 1$,
+        and at the same time $P[X \in A] = P[X \in B] = 1$,
+        since $a \in A$ and $a \in B$.
+    \item If $a \notin AB$,
+        then $P[X \in AB] = 0$,
+        and at the same time $P[X \in A] = 0$ or $P[X \in B] = 0$,
+        since $a \notin A$ or $a \notin B$.
+    \end{enumerate}
+    In both cases,
+    $P[X \in AB] = P[X \in A] P[X \in B]$,
+    so $X \perp X$.
+\item $(\Rightarrow)$:
+    Suppose $X \perp X$.
+    Let $A \in \B$.
+    Then
+\[
+0 = P(\phi) = P(AA^C) = P(A) P(A^C),
+\]
+so $P(A) = 0 \text{ or } 1$ for all $A \in \B$.
+Let $F(x) = P[X \leq x]$.
+Then $F(x) = 0 \text{ or } 1$ for all $x$.
+Define $S := \{x: F(x) = 1\}$ and $b := \inf S$.
+Since $F(\infty) = 1$ and $F(-\infty) = 0$,
+$b \neq -\infty \text{ or } \infty$.
+Moreover, 
+$F$ is non-decreasing and right-continuous,
+so $b \in S$
+and thus $P[X \leq b] = 1$.
+Further more,
+\[
+P[X < b] = P(\bigcup_{n=1}^\infty [X \leq b - \frac{1}{n}]) = \lim_{n \to \infty} P[X \leq b - \frac{1}{n}] = 0, 
+\]
+so
+\[
+P[X = b] = P[X \leq b] - P[X < b] = 1 - 0 = 1
+\]
+\end{enumerate}
+\item Problem 4 \\
+To show:
+\[
+E[\cdots E[X | \B_1] \cdots | \B_n] = E[X | \B_n] \quad a.s.
+\]
+Proof: \\
+First consider $E[E[X|\B_1] | \B_2]$.
+Let $B_2 \in \B_2$.
+Then 
+\[
+\int_{B_2} E[ E[X|\B_1] | \B_2] dP 
+= \int_{B_2} E[X|\B_1] dP 
+= \int_{B_2} X dP 
+= \int_{B_2} E[X|\B_2] dP,
+\]
+since $\B_2 \subset \B_1$.
+By the Integral Comparison Lemma,
+\[
+E[ E[X | \B_1] | B_2] = E[X | \B_2] \quad a.s.
+\]
+Then by mathematical induction,
+\[
+E[\cdots E[X | \B_1] \cdots | \B_n] = E[X | \B_n] \quad a.s.
+\]
+\end{enumerate}
+
+\end{document}

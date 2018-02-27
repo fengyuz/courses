@@ -1,0 +1,109 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+
+\newcommand{\hf}{\hat{f}}
+\newcommand{\hF}{\hat{F}}
+\newcommand{\Bern}{\operatorname{Bern}}
+\newcommand{\ltwo}{\overset{L_2}{\to}}
+\newcommand{\pto}{\overset{p}{\to}}
+\newcommand{\dto}{\overset{d}{\to}}
+\newcommand{\iid}{\overset{iid}{\sim}}
+
+\title{Biostat 801 Homework 8}
+\author{David Zhang}
+\begin{document}
+\maketitle
+
+\section{Problem}
+
+Let
+\[
+  Y_{n,i}(x) = 1_{[X_i \in (x - a_n, x+a_n]]} \iid \Bern(p_n(x))
+\]
+where
+\[
+  p_n(x) = F((x - a_n, x+a_n]).
+\]
+Then
+\[
+  p_n(x) \to 0 \quad\text{and}\quad \frac{p_n(x)}{2a_n} \to f(x)
+\]
+as $a_n \to 0$.
+Moreover,
+\begin{align*}
+  E[\hf_n(x)]
+  = & E \left[ \frac{\hF_n(x+a_n) - \hF_n(x-a_n)}{2a_n} \right]
+  \\ = & E \left[\frac{\sum_{i=1}^n Y_{n,i}(x)}{2na_n} \right]
+  \\ = & \frac{n p_n(x)}{2na_n}
+  \\ = & \frac{p_n(x)}{2a_n}
+         \to f(x) \quad\text{as}\quad a_n \to 0
+\end{align*}
+
+\section{Problem}
+
+From the previous problem, we have
+
+\begin{align*}
+Var[\hf_n(x)] = & \frac{Var \sum_{i=1}^n Y_{n,i}(x)}{4n^2a_n^2} 
+  \\ = & \frac{n p_n(x)(1 - p_n(x))}{4n^2a_n^2}
+  \\ = & \frac{1}{2na_n}\frac{p_n(x)}{2a_n} (1 - p_n(x))
+         \\ \to & 0 \cdot f(x) \cdot (1 - 0) = 0
+\end{align*}
+as $a_n \to 0$ and $na_n \to \infty$.
+
+\section{Problem}
+We have
+\[
+  E\{(\hf_n(x) - E[\hf_n(x)])^2\} = Var[\hf_n(x)] \to 0
+\]
+as $na_n \to \infty$, so
+\[
+  \hf_n(x) \ltwo E[\hf_n(x)].
+\]
+Moreover, since $E[\hf_n(x)] \to f(x)$,
+\[
+  E[\hf_n(x)] \ltwo f(x).
+\]
+Then by the triangular inequality,
+\[
+  \hf_n(x) \ltwo f(x),
+\]
+which implies
+\[
+  \hf_n(x) \pto f(x).
+\]
+Thus $\hf_n$ is a consistent estimator for $f$.
+
+\section{Problem}
+
+Let
+\[
+  W_{n,i}(x) = \frac{Y_{n,i}(x)}{2a_n}.
+\]
+Then
+\begin{align*}
+  \hf_n(x) = & \frac{1}{n} \sum_{i=1}^n W_{n,i}(x) = \bar{W}_n(x).
+  \\ E[\hf_n(x)] = & \frac{1}{n} \sum_{i=1}^n E[W_{n,i}(x)] = E[W_{n,1}(x)] =  \frac{p_n(x)}{2a_n}
+\end{align*}
+and
+\[
+  Var[W_{n,1}(x)] = \frac{p_n(x)}{2a_n} \frac{(1-p_n(x))}{2a_n} \to
+  \frac{f(x)}{2a_n}
+\]
+as $a_n \to 0$.  Then as $n \to \infty$ and $a_n \to 0$,
+\begin{align*}
+  \frac{\bar{W}_n(x) - E[W_{n,1}(x)]}{\sqrt{Var[W_{n,1}(x)] / n}}
+  \to \sqrt{2na_n} \frac{\hf_n(x) - E\hf_n(x)}{\sqrt{f(x)}} 
+\end{align*}
+and by CLT,
+\[
+  \frac{\bar{W}_n(x) - E[W_{n,1}(x)]}{\sqrt{Var[W_{n,1}(x)] / n}} \dto
+  N(0,1).
+\]
+Then by Slutsky,
+\[
+  \sqrt{2na_n} \frac{\hf_n(x) - E\hf_n(x)}{\sqrt{f(x)}} \dto N(0,1).
+\]
+
+\end{document}

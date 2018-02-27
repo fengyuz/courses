@@ -1,0 +1,363 @@
+---
+title: "682hw5"
+author: "Zheng Xu"
+date: "December 2, 2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+```{r setup, echo = TRUE, message = FALSE, warning = FALSE,fig.width=12, fig.height=8}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, warning=FALSE, message=FALSE)
+library(R2jags)
+library(MASS)
+library(ggplot2)
+library(mcmcplots)
+library(MCMCvis)
+library(geoR)
+
+load("swim_time.RData")
+ns   <- nrow(Y)
+nt   <- ncol(Y)
+JAGS_swimmer_model = function(){
+  for (i in 1:ns) {
+    for (j in 1:nt) {
+      Y[i, j]    ~ dnorm(mean[i, j], tau_e)
+      mean[i, j] <- a[i] + b[i] *j
+    }
+    
+  }
+  for (i in 1:ns){
+    a[i]~ dnorm(22, tau_a)
+    b[i]~ dnorm(0, tau_b)
+    Y_pred[i] ~ dnorm(a[i] + b[i] * 7, tau_e)
+    z[i] <- (Y_pred[i] == min(Y_pred)) 
+  }
+  tau_a~ dgamma(0.1, 0.1)
+  tau_b ~ dgamma(0.1, 0.1)
+  tau_e ~ dgamma(0.1, 0.1)
+  sigma2_a <- 1/tau_a
+  sigma2_b <- 1/tau_b
+  sigma2_e <- 1/tau_e
+}
+
+fit_swimmer_model = jags(
+  data = list(Y = Y, ns = ns, nt = nt),
+  inits = list(list(a = rep(20,4), b = rep(0,4)),
+               list(a = rep(30,4), b = rep(1,4)),
+               list(a = rep(25,4), b = rep(-1,4)),
+               list(a = rep(10,4), b = rep(0,4)),
+               list(a = rep(15,4), b = rep(0,4))),
+  
+parameters.to.save = c("a","b","sigma2_a","sigma2_b", "sigma2_e", "Y_pred","z"),
+  n.chains = 5,
+  n.iter = 10000,
+  n.burnin = 1000,
+  model.file = JAGS_swimmer_model
+)
+
+chains = as.mcmc(fit_swimmer_model)
+MCMCtrace(chains, pdf = FALSE, params = c("a","b","sigma2_a","sigma2_b", "sigma2_e", "Y_pred"))
+gelman.diag(chains, multivariate = FALSE)
+```
+
+##b. PPD
+To obtain PPD, draw Y_pred in the JAGS model, densityplots shown for Y_pred is the posterior predictive distribution. We also obtain mean and 95% CI for Y_pred.
+```{r}
+summary(chains)
+```
+
+
+##c.
+In the JAGS model, we define Z as indicator function that individual i has the fastest posterior predictive value. In this case, we output the posterior mean of Z, as the probablity $Pr(Y_i^*=min(Y_1^*,...,Y_4^*)|\boldsymbol{Y})$. Based on posterior mean of z = (0.8364, 0.0012, 0.1594, 0.003), we would recommend swimmer 1.
+
+
+
+#Problem 2.
+##a.
+Linear regression.
+
+
+
+```{r, fig.width=12, fig.height=8}
+#import data
+X = UScrime[,1:15]
+Y = UScrime[,16]
+n = nrow(UScrime)
+p = ncol(UScrime) - 1
+df = list()
+df$X = X
+df$Y = Y
+df$n = n
+df$p = p
+
+JAGS_BLR_flat = function(){
+  # Likelihood
+  for(i in 1:n){
+    Y[i] ~ dnorm(mu[i],inv_sigma2)
+    mu[i] <- beta_0 + inprod(X[i,],beta) 
+  }
+  # Prior for beta
+  for(j in 1:p){
+    beta[j] ~ dnorm(0,0.0001)
+    #non-informative priors 
+  }
+  # Prior for intercept
+  beta_0 ~ dnorm(0, 0.0001)
+  
+  # Prior for the inverse variance
+  inv_sigma2 ~ dgamma(0.0001, 0.0001)
+  sigma2 <- 1.0/inv_sigma2
+}
+
+
+fit_JAGS_flat = jags(data=df,
+                inits=list(list(beta = rnorm(p),
+                                beta_0 = 0,
+                                inv_sigma2 = 1),
+                         list(beta = rnorm(p),
+                                beta_0 = 1,
+                                inv_sigma2 = 2),
+                          list(beta = rnorm(p),
+                                beta_0 = 2,
+                                inv_sigma2 = 2),
+                          list(beta = rnorm(p),
+                                beta_0 = 10,
+                                inv_sigma2 = 5),
+                         list(beta = rnorm(p),
+                                beta_0 = 20,
+                                inv_sigma2 = 1)),
+                parameters.to.save = c("beta_0","beta","sigma2"),
+                n.chains=5,
+                n.iter=10000,
+                n.burnin=1000,
+                model.file=JAGS_BLR_flat)
+
+chains_2a = as.mcmc(fit_JAGS_flat)
+plot(chains_2a)
+gelman.diag(chains_2a)
+
+##output 95% credible interval
+summary(chains_2a)
+```
+
+
+##b.
+Cross validation
+```{r}
+#split data into training and test set
+split_data = function(df,train_test_ratio = 1,random=TRUE){
+  n_train = floor(df$n*train_test_ratio/(1+train_test_ratio))
+  n_test  =  df$n - n_train
+  if(random){
+    train_idx = sample(1:n,n_train,replace = FALSE)
+    test_idx = setdiff(1:n,train_idx)
+  }
+  else{
+    train_idx = 1:n_train
+    test_idx = n_train+1:n_test
+  }
+  
+  df_t = list()
+  df_t$Y_train = df$Y[train_idx]
+  df_t$X_train = df$X[train_idx,,drop=FALSE]
+  df_t$X_test = df$X[test_idx,,drop=FALSE]
+  df_t$n_train = n_train
+  df_t$n_test = n_test
+  df_t$p = df$p
+  
+  return(list(df_t=df_t,Y_test=df$Y[test_idx]))
+}
+
+pred = split_data(df, random = FALSE)
+
+##define a predictive JAGS
+JAGS_BLR_flat_pred = function(){
+  # Likelihood
+  for(i in 1:n_train){
+    Y_train[i] ~ dnorm(mu_train[i],inv_sigma2)
+    mu_train[i] <- beta_0 + inprod(X_train[i,],beta) 
+    # same as beta_0 + X[i,1]*beta[1] + ... + X[i,p]*beta[p]
+  }
+  # Prior for beta
+  for(j in 1:p){
+    beta[j] ~ dnorm(0,0.0001)
+    #non-informative priors 
+  }
+  # Prior for intercept
+  beta_0 ~ dnorm(0, 0.0001)
+  
+  # Prior for the inverse variance
+  inv_sigma2 ~ dgamma(0.0001, 0.0001)
+  sigma2 <- 1.0/inv_sigma2
+  
+  #prediction
+   # Predictions
+  for(i in 1:n_test){
+    Y_test[i] ~ dnorm(mu_test[i],inv_sigma2)
+    mu_test[i] <- beta_0 + inprod(X_test[i,],beta) 
+  }
+}
+
+fit_JAGS_flat_pred = jags(data=pred$df_t,
+                inits=list(list(beta = rnorm(p),
+                                beta_0 = 0,
+                                inv_sigma2 = 1),
+                         list(beta = rnorm(p),
+                                beta_0 = 1,
+                                inv_sigma2 = 2),
+                          list(beta = rnorm(p),
+                                beta_0 = 2,
+                                inv_sigma2 = 2),
+                          list(beta = rnorm(p),
+                                beta_0 = 10,
+                                inv_sigma2 = 5),
+                         list(beta = rnorm(p),
+                                beta_0 = 20,
+                                inv_sigma2 = 1)),
+                parameters.to.save = c("beta_0","beta","sigma2", "Y_test"),
+                n.chains=5,
+                n.iter=10000,
+                n.burnin=1000,
+                model.file=JAGS_BLR_flat_pred)
+
+chains_2b = as.mcmc(fit_JAGS_flat_pred)
+
+##plot the predictive values
+result = summary(chains_2b)
+q = result$quantiles
+dtfr = as.data.frame(cbind(result$quantiles))
+
+##compare
+pred$Y_test
+fit_JAGS_flat_pred$BUGSoutput$median$Y_test
+
+
+```
+
+
+##c. Slab and spike
+
+```{r}
+JAGS_BLR_SpikeSlab = function(){
+  # Likelihood
+  for(i in 1:n){
+    Y[i] ~ dnorm(mu[i],inv_sigma2)
+    mu[i] <- beta_0 + inprod(X[i,],beta) 
+    # same as beta_0 + X[i,1]*beta[1] + ... + X[i,p]*beta[p]
+  }
+  #Prior for beta_j
+  for(j in 1:p){
+    beta[j] ~ dnorm(0,inv_tau2[j])
+    inv_tau2[j] <- (1-gamma[j])*1000+gamma[j]*0.01
+    gamma[j] ~ dbern(0.5)
+  }
+  # Prior for intercept
+  beta_0 ~ dnorm(0, 0.0001)
+  
+  # Prior for the inverse variance
+  inv_sigma2 ~ dgamma(0.0001, 0.0001)
+  sigma2 <- 1.0/inv_sigma2
+}
+
+fit_JAGS_SpikeSlab = jags(data=df,
+                inits=list(list(beta = rnorm(p),
+                                beta_0 = 0,
+                                inv_sigma2 = 1),
+                         list(beta = rnorm(p),
+                                beta_0 = 1,
+                                inv_sigma2 = 2),
+                          list(beta = rnorm(p),
+                                beta_0 = 2,
+                                inv_sigma2 = 2),
+                          list(beta = rnorm(p),
+                                beta_0 = 10,
+                                inv_sigma2 = 5),
+                         list(beta = rnorm(p),
+                                beta_0 = 20,
+                                inv_sigma2 = 1)),
+                parameters.to.save = c("beta_0","beta","sigma2"),
+                n.chains=5,
+                n.iter=10000,
+                n.burnin=1000,
+                model.file=JAGS_BLR_flat)
+
+plot(fit_JAGS_SpikeSlab)
+chains_2c = as.mcmc(fit_JAGS_SpikeSlab)
+summary(chains_2c)
+
+
+
+
+
+
+##############################################################################
+##Prediction
+##############################################################################
+
+
+JAGS_BLR_SpikeSlab_pred = function(){
+  # Likelihood
+  for(i in 1:n_train){
+    Y_train[i] ~ dnorm(mu_train[i],inv_sigma2)
+    mu_train[i] <- beta_0 + inprod(X_train[i,],beta) 
+    # same as beta_0 + X[i,1]*beta[1] + ... + X[i,p]*beta[p]
+  }
+  # Prior for beta
+  for(j in 1:p){
+    beta[j] ~ dnorm(0,inv_tau2[j])
+    inv_tau2[j] <- (1-gamma[j])*1000+gamma[j]*0.01
+    gamma[j] ~ dbern(0.5)
+  }
+  # Prior for intercept
+  beta_0 ~ dnorm(0, 0.0001)
+  
+  # Prior for the inverse variance
+  inv_sigma2 ~ dgamma(0.0001, 0.0001)
+  sigma2 <- 1.0/inv_sigma2
+  
+  #prediction
+   # Predictions
+  for(i in 1:n_test){
+    Y_test[i] ~ dnorm(mu_test[i],inv_sigma2)
+    mu_test[i] <- beta_0 + inprod(X_test[i,],beta) 
+  }
+}
+
+fit_JAGS_SpikeSlab_pred = jags(data = pred$df_t,
+                inits=list(list(beta = rnorm(p),
+                                beta_0 = 0,
+                                inv_sigma2 = 1),
+                         list(beta = rnorm(p),
+                                beta_0 = 1,
+                                inv_sigma2 = 2),
+                          list(beta = rnorm(p),
+                                beta_0 = 2,
+                                inv_sigma2 = 2),
+                          list(beta = rnorm(p),
+                                beta_0 = 10,
+                                inv_sigma2 = 5),
+                         list(beta = rnorm(p),
+                                beta_0 = 20,
+                                inv_sigma2 = 1)),
+                parameters.to.save = c("beta_0","beta","sigma2","Y_test"),
+                n.chains=5,
+                n.iter=10000,
+                n.burnin=1000,
+                model.file=JAGS_BLR_SpikeSlab_pred)
+
+cbind(pred$Y_test, fit_JAGS_SpikeSlab_pred$BUGSoutput$median$Y_test)
+
+plot(pred$Y_test, type = 'l')
+lines(fit_JAGS_SpikeSlab_pred$BUGSoutput$median$Y_test, col= 'red')
+
+
+```
+
+
+```{r}
+v_loc = unique(gambia[,"x"])
+v = match(gambia[,"x"],v_loc)
+```
+

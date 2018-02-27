@@ -1,0 +1,67 @@
+\message{ !name(biostat602_summary.tex)}\documentclass{amsart}
+\usepackage{amsmath}
+\usepackage{bm}
+
+\title{Biostat 602 Summary}
+
+\begin{document}
+
+\message{ !name(biostat602_summary.tex) !offset(0) }
+\section{Data reduction}
+
+\begin{enumerate}
+\item Sufficient: Within any region of the partition, mass of $x$
+  changes uniformly (ratio invariant) as $\theta$ changes
+  \begin{enumerate}
+  \item Test:
+    \begin{align*}
+      f_X(x|\theta) = h(x)g(T(X),\theta)
+    \end{align*}
+  \end{enumerate}
+\item Minimal sufficient: The most coarse partition; also unique
+  \begin{enumerate}
+  \item Test
+    \begin{align*}
+      \frac{f_X(x|\theta)}{f_X(y|\theta)} \quad \text{is independent of $\theta$} 
+      \Leftrightarrow T(x) = T(y)
+    \end{align*}
+  \end{enumerate}
+\item Ancillary: For any region of the partition, mass of the whole
+  region is invariant as $\theta$ changes.
+\item Complete: No coarser partition is ancillary
+  \begin{enumerate}
+  \item Definition
+    \begin{align*}
+      E[g(T)|\theta] = 0 \; \forall \theta 
+      \Rightarrow \operatorname{Pr}(g(T) = 0 | \theta) = 1 \; \forall \theta
+    \end{align*}
+  \item Properties
+    \begin{enumerate}
+    \item A complete sufficient statistic is also minimal sufficient.
+    \item A complete sufficient statistic is independent of any
+      ancillary statistic.
+    \end{enumerate}
+  \end{enumerate}
+\item Exponential family:
+  \begin{enumerate}
+  \item Form:
+    \begin{align*}
+      f(x|\theta) = h(x) c(\theta) \exp{\left\{\sum_{j=1}^m t_j(x) w_j(\theta)\right\}}
+    \end{align*}
+  \item Statistic:
+    \begin{align*}
+      \bigoplus_{j=1}^m \sum_{i=1}^n t_j(X_i)
+    \end{align*} 
+    Sufficient; complete if $ \oplus_{j=1}^m w_j(\theta)$ contains an
+    open set in $\mathbb{R}^m$.
+  \end{enumerate}
+     
+
+
+
+
+
+\end{enumerate}
+\message{ !name(biostat602_summary.tex) !offset(-2) }
+
+\end{document}

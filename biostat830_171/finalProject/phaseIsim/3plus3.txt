@@ -1,0 +1,46 @@
+
+
+			INPUT DATA
+
+
+number of simulations ...... 1000
+number of patients ......... 30
+dose levels ................ 0.33 0.43 0.55 0.64 0.77 
+probability of toxicity:
+ 0.05 0.10 0.20 0.30 0.50 
+
+3+3 rule; 0/3, escalate
+1/3: 3 more patients treated at the same level
+2/6, 2/3, or 3/3: exceed MTD MTD=one level lower than
+stopped level; need at least 6 patients treated at MTD
+
+random seed .......................... 10
+name of the output file:  3plus3.txt
+
+
+			OUTPUT RESULTS
+
+
+|-------------------|-------------------------------|
+| dose levels       | 1     2     3     4     5     |
+|===================|===============================|
+| avg # of toxicity | 0.2   0.4   0.8   1.0   0.7   |
+|-------------------|-------------------------------|
+| avg # at dose     | 3.7   4.2   4.4   3.4   1.3   |
+|===================|===============================|
+| % dose toxicity   |  5.3   9.9  18.8  29.6  50.5  |
+|-------------------|-------------------------------|
+| % patients        | 22.0  24.6  25.8  19.8   7.8  |
+|-------------------|-------------------------------|
+| % of MTD dose     | 10.3  23.1  34.0  24.2   0.0  |
+|-------------------|-------------------------------|
+
+
+average number of patients for one simulation ... 16.96
+
+overall toxicity ...............................  18.3 %
+
+
+MTD below first dose level ........... 3.1 %
+MTD above last  dose level ............... 5.2 %
+out of patients .......................... 0.1 %

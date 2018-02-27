@@ -1,0 +1,92 @@
+---
+title: "Biostat 651 Homework 2"
+author: "David (Daiwei) Zhang"
+date: "February 6, 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 2(c)
+
+```{r}
+dat <- read.csv("hw2.csv", header = TRUE)
+Y <- dat$Y
+n <- length(Y)
+X <- cbind(rep(1,n), dat$X1, dat$X2)
+nu <- 3
+b <- c(-1, -1, -1)
+
+n.it <- 100
+B <- matrix(0, n.it, length(b))
+
+for(i in 1:n.it){
+    B[i,] = b
+    eta <- X %*% b
+    mu <- -1/eta
+    v <- c(mu^2)
+    V <- diag(v)
+    V.inv <- diag(1/v)
+    Z <- eta + V.inv %*% (Y - mu)
+    b <- solve(t(X) %*% V %*% X) %*% t(X) %*% V %*% Z
+}
+
+bhat <- tail(B, 1)
+print(bhat)
+```
+
+## Problem 2(d)
+
+```{r}
+J <- nu * t(X) %*% V %*% X
+bhat.se <- sqrt(diag(solve(J)))
+
+# 95% CI for beta.hat.1
+bhat[2] + c(-1,1) * 1.96 * bhat.se[2]
+# 95% CI for beta.hat.2
+bhat[3] + c(-1,1) * 1.96 * bhat.se[3]
+```
+
+## Problem 2(e)
+
+```{r}
+lambda.null <- rep(mean(Y), n)
+lambda.alt <- -1/eta
+
+like <- function(lambda, y){
+     -nu * sum(log(lambda)) - nu * sum(Y / lambda)
+}
+
+lr.stat <- 2 * (like(lambda.alt, Y) - like(lambda.null,Y))
+lr.stat
+lr.pval <- 1 - pchisq(lr.stat, df = 2)
+lr.pval
+```
+
+We shoud reject $H_0$ since $p < 0.05$.
+
+## Problem 3(a)
+
+```{r}
+dat <- read.csv("aids.csv", skip = 2, header = TRUE)
+dat$period <- c(1:20)
+i <- dat$period
+y <- dat$cases
+plot(i, y)
+```
+
+## Problem 3(b)
+```{r}
+plot(log(i), log(y))
+```
+
+## Problem 3(c)
+```{r}
+tt <- log(i) - log(10)
+summary(glm(y ~ tt, family = poisson))
+```
+
+Thus $\beta_0 = 4.051$, $\beta_1 = 1.327$.
+Here, $\beta_0$ is the expected number of cases in the $10^\text{th}$ period. As for $\beta_1$, it is expected to take $2^\frac{1}{\beta_1}$ periods for the number of cases to double.

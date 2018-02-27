@@ -1,0 +1,8 @@
+model{
+	for (i in 1:N1){
+		s[i] ~ dbin(p[i], n[i])		
+		p[i] <- exp(3.0 + theta * d[i]) / (1 + exp(3.0 + theta * d[i]))
+	}
+	theta ~ dunif(low, high)
+}
+

@@ -1,0 +1,563 @@
+---
+title: "An Analysis of Errors in the 2016 Presidential Election Polls"
+author: "David (Daiwei) Zhang"
+date: "April 26, 2017"
+header-includes:
+   - \usepackage{float}
+   - \usepackage{epsfig}
+   - \usepackage[semicolon,authoryear]{natbib}
+   - \bibliographystyle{natbib}
+   - \usepackage{amsmath}
+   - \usepackage{cleveref}
+   - \setlength\parindent{24pt}
+fontsize: 12pt
+geometry: margin=1.5in
+output: 
+  pdf_document:
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r, echo = FALSE}
+library(MASS)
+library(car)
+
+# vote result dataset
+load("~/data/presidential_2016/USA.county.data/data/USA_county_data.RData")
+# Selection variables to be included
+to.be.weighted <- c(
+                    "At.Least.Bachelor.s.Degree",
+                    "Median.Earnings.2010.dollars",
+                    "White",
+                    "Farming.fishing.and.forestry.occupations",
+                    "Poverty.Rate.below.federal.poverty.threshold",
+                    "median_age",
+                    "Unemployment",
+                    "Violent.crime"
+                    )
+to.be.summed <- c("Total.Population",
+                  "votes16_trumpd",  "total16",
+                  "rep12", "total12")
+vote <- USA_county_data[, c("State", to.be.summed, to.be.weighted)]
+
+to.be.weighted <- c("BachelorOrAbove", "MedianEarnings", "White", "Farming", "PovertyRate", "MedianAge", "Unemployment", "ViolentCrime")
+colnames(vote)[c(7:(7+length(to.be.weighted)-1))] <- to.be.weighted
+
+# Clean out unwanted observations
+vote <- vote[complete.cases(vote),]
+vote <- vote[(vote$State != "Hawaii" &
+                        vote$State != "Alaska" &
+                        vote$State != "District of Columbia"),]
+vote$State <- as.factor(vote$State)
+
+
+
+# Add state population to each county
+stpop <- aggregate(vote$Total.Population,
+                   by = list(State = vote$State), FUN = sum)
+colnames(stpop)[2] = "st.pop"
+vote <- merge(vote, stpop, by = "State")
+# Weight the variables
+vote$wt <- vote$Total.Population / vote$st.pop
+vote.wt <- vote
+vote.wt[,to.be.weighted] <- vote.wt[,to.be.weighted] * vote.wt$wt
+
+
+
+# Aggregate by state
+vote.agg <- aggregate(vote.wt[,!(names(vote.wt) %in% c("State", "st.pop", "wt"))],
+                      by = list(State=vote.wt$State), FUN = sum)
+vote.agg$rep16.frac <- vote.agg$votes16_trumpd / vote.agg$total16 * 100
+vote.agg$rep12.frac <- vote.agg$rep12 / vote.agg$total12 * 100
+vote.agg$turnout16 <- vote.agg$total16 / vote.agg$Total.Population
+# Make vote.agg compatible to poll.agg
+colnames(vote.agg)[1] = "state"
+vote.agg$state <- as.character(vote.agg$state)
+
+
+# poll dataset
+poll <- read.csv("~/data/presidential_2016/silver_poll.csv")
+
+
+# Convert poll date to days before the voting day
+poll$middledate <- (as.Date(poll$enddate, "%m/%d/%Y") - as.Date(poll$startdate, "%m/%d/%Y")) / 2 + as.Date(poll$startdate, "%m/%d/%Y")
+poll$daystillvote <- as.numeric(as.Date(poll$forecastdate, "%m/%d/%y") - as.Date(poll$middledate, "%m/%d/%Y"))
+poll$poll.rep.frac <- poll$rawpoll_trump 
+# Clean out the unwanted observations
+poll <- poll[poll$type == "polls-only",]
+poll <- poll[,c("state", "samplesize", "poll.rep.frac",
+                "daystillvote", "pollster")]
+poll <- poll[complete.cases(poll),]
+poll <- poll[(poll$state != "Hawaii" &
+                        poll$state != "Alaska" &
+                        poll$state != "U.S." &
+                        poll$state != "District of Columbia"),]
+poll[(poll$state=="Nebraska CD-1"|
+          poll$state=="Nebraska CD-2"|
+          poll$state=="Nebraska CD-3"),]$state <- "Nebraska"
+poll[(poll$state=="Maine CD-1"|
+          poll$state=="Maine CD-2"|
+          poll$state=="Maine CD-3"),]$state <- "Maine"
+poll$state <- as.character(poll$state)
+colnames(poll)[2] <- "poll.size"
+
+
+
+# Combine poll result and vote result
+merged <- merge(poll, vote.agg, by = "state")
+merged$poll.err <- merged$poll.rep.frac - merged$rep16.frac
+merged$poll.abserr <- abs(merged$poll.err)
+
+# Add state region and state abbreviations to dataset
+data(state)
+state <- state.name
+stregion <- data.frame(state, state.region, state.abb)
+merged <- merge(merged, stregion, by = "state")
+
+# Linear regression
+covariates <- colnames(merged)[!(colnames(merged) %in% c("state",
+                                      "Total.Population", "votes16_trumpd",
+                                      "total16", "rep12", "total12",
+                                      "rep16.frac", "poll.abserr", "pollster",
+                                      "state.abb", "poll.err",
+                                      "turnout16"
+                                      ))]
+fit <- lm(as.formula(paste0("poll.abserr~",paste(covariates, collapse = "+"))),
+          data = merged)
+poll.abserr.st <- aggregate(merged$poll.abserr, by = list(state.abb=merged$state.abb), FUN = mean)
+poll.repfrac.st <- aggregate(merged$poll.rep.frac, by = list(state.abb=merged$state.abb), FUN = mean)
+poll.abserr.st <- merge(poll.abserr.st, poll.repfrac.st, by = "state.abb")
+```
+
+\setlength{\textheight}{625pt} \setlength{\baselineskip}{23pt}
+
+
+
+
+\section{Introduction} \label{sec:intro}
+
+The 2016 presidential election generated many interesting datasets and statistical problems.
+Most polls have underestimated Trump's performance,
+including state polls, national polls, forecasts, and exit polls (\cite{bialik}).
+Exports have suggested different survey factors that caused this result,
+especially the nonresponse bias and low turnout rate (\cite{stein}).
+In this report, we present an analysis of the election poll and result datasets in order to better understand the errors in the polls.
+
+\section{Datasets} \label{sec:data}
+
+The analysis uses mainly two datasets, one for the polls and the other for the election results.
+The poll dataset is obtained from FiveThirtyEight (\cite{pollData}).
+It consists of state level and national poll results conducted by media, universities, and other institutes.
+Beside the proportion of votes won by each candidate, the dataset also contains information such as the sample size and the date of the poll.
+The election result is contained in an unpublished dataset compiled by Emil O. W. Kirkegaard from the New York Times and a study of inequality in the U. S. (\cite{kirkegaard}).
+It contains county-level election result as well as more than a hundred variables about each county's demography, economy, and other information.
+Both datasets are available to the public.
+
+\section{Analysis} \label{sec:analy}
+
+\subsection{Distribution of Errors}
+
+We are interested in how the poll's deviation from the election result is associated with other factors.
+In this analysis, we use state level data only.
+Thus we need to aggregate the county level election results and demographic variables into state level.
+After that, we compare the fraction of people that support Trump according to the poll with the fraction of voters that actually voted for Trump in each state.
+The distributions of the poll errors and their absolute values are shown in the histograms below:
+
+\vspace{0.2in}
+```{r}
+par(mfrow = c(1,2))
+hist(merged$poll.err, main = "Distribution of poll errors", xlab = "Poll errors")
+hist(merged$poll.abserr, main = "Distribution of abs poll errors", xlab = "Absolute poll errors")
+```
+\vspace{0.2in}
+
+About $97.5\%$ polls underestimated Trump's performance, and the mean absolute error is $9.2$ (percentage) points.  
+
+\subsection{Linear Regression}
+
+Next, we conduct a linear regression of the errorrs.
+Since we are are interested in what makes the polls to be more wrong,
+the regression is done on the absolute errors.
+For the covariates, we choose to include the sample size of the poll, the number of days between the polling date and the voting date, the proportion of voters that support Trump in the poll, the region of the state (Northeast, South, North Central, and West), the proportion of voters in that state for Romney in 2012, and some other state level demographic variables.
+The result of the linear regression is shown below:
+
+\setlength{\baselineskip}{10pt}
+\vspace{0.2in}
+```{r}
+print(summary(fit))
+```
+\setlength{\baselineskip}{23pt}
+\vspace{0.2in}
+
+The regression's r-squared value is $0.88$, so our covariates contribute substantially to the variation in the absolute poll errors. 
+Moreover, most covariates' effects are significant at $\alpha = 0.05$, alghough some of them have quite small magnitute of effect.
+The sample size of the poll has a negative effect on the absolute error, which is expected.
+The poll's fraction of Trump supporters also has a negative effect,
+but in \Cref{subsec:agg} we will show some complication for this.
+The number of days between the poll and the election day, however, does not have a significant effect,
+so once the other covariates are held at constant,
+changing in the date of the poll does not chane the absolute poll error much.
+
+As for the characteristics of the states, compared to the North, the poll's performance is not significantly different in the South, though it is significantly worse in the West and the worst in the Midwest (absolute error is $3.7$ points higher).
+The states that had more voters for Romeny in 2012 have more inccorrect polls in 2016.
+In addition, the higher percentage of college-educated people, unemployment rate, and violent crime are associated with lower absolute error,
+while higher median income, median age, percentage of white people, percentage of people taking farming, fishing, and forresting occupations, and poverty rate are associated with greater absolute error.
+
+\subsection{Model Diaognistic}
+
+We now have a look of the residuals.
+The model diagnostic plots are shown below:
+
+\vspace{0.2in}
+```{r}
+par(mfrow = c(1,2))
+plot(fit)
+```
+\vspace{0.2in}
+
+In the residuals vs fitted values plot, we can see that the residuals tend to fall on some "layers".
+We will discuss this further later.
+Moreover, the residuals have a parabolic shape,
+which suggests that the linear model might need some quadratic terms.
+Moreover, there is a group of outliers on the top left corner.
+They also appear around the tail of the Q-Q plot.
+The Q-Q plot behaves quite well except for this area.
+Thus we look into these outlier polls in more details:
+
+\vspace{0.2in}
+\setlength{\baselineskip}{10pt}
+```{r}
+outlierTest(fit)
+```
+\vspace{0.2in}
+
+```{r}
+idx <- as.numeric(names(outlierTest(fit)$rstudent))
+merged[idx, c("state", "pollster", "daystillvote", "poll.rep.frac", "poll.err")]
+```
+\setlength{\baselineskip}{23pt}
+\vspace{0.2in}
+
+Here we see that the outliers are quite spread out in the covariates listed above. 
+No obvious pattern is observed.
+Thus the reason they exist is inconclusive from the analysis.
+
+\subsection{Aggregated Polls} \label{subsec:agg}
+
+From the linear model, we observed that the percentage of Trump voters in the poll has a negative effect on the absolute poll error.
+To further investigate this relation,
+we plot these two variables.
+
+```{r}
+fit.ind <- lm(merged$poll.abserr ~ merged$poll.rep.frac)
+plot(merged$poll.rep.frac, merged$poll.abserr,
+     main =  paste(
+       "Individual Polls ",
+       "(R^2 = ", 
+       format(summary(fit.ind)$adj.r.squared, digits=3),
+       ", ",
+       "p-val = ",
+       format(summary(fit.ind)$coefficients[2,4], digits=3),
+       ")"
+       ),
+     xlab = "% Trump voters in poll",
+     ylab = "Absolute poll error",
+     col = as.numeric(as.factor(merged$state))
+)
+title(sub = paste(
+       "(R^2 = ", 
+       format(summary(fit.ind)$adj.r.squared, digits=3),
+       ", ",
+       "p-val = ",
+       format(summary(fit.ind)$coefficients[2,4], digits=3),
+       ")"
+       )
+      )
+abline(fit.ind)
+```
+\vspace{0.2in}
+
+Here the data points are colored by state.
+We see that each state has its distinct "layer".
+If we aggregate the individual polls by state, we get the following plot.
+
+\vspace{0.2in}
+```{r}
+fit.st <- lm(poll.abserr.st$x.x ~ poll.abserr.st$x.y)
+plot(poll.abserr.st$x.y, poll.abserr.st$x.x, pch=".",
+     main =  "Aggregated Polls by State",
+     xlab = "% Trump voters in poll",
+     ylab = "Absolute poll error")
+title(sub = paste(
+       "(R^2 = ", 
+       format(summary(fit.st)$adj.r.squared, digits=3),
+       ", ",
+       "p-val = ",
+       format(summary(fit.st)$coefficients[2,4], digits=3),
+       ")"
+       )
+      )
+text(poll.abserr.st$x.y, poll.abserr.st$x.x, labels = poll.abserr.st$state.abb)
+abline(fit.st)
+```
+
+Here we can clearly see the pattern.
+On the national level,
+states with higher aggregated polled fraction of Trump voters have greater absolute poll error (and the signs of the errors are most likely to be negative),
+so the more Trump supporters a state has, the more the polls underestimate his performance.
+However, within each state, polls that favor Trump more give more accurate prediction.
+This motivated us to conduct a regression of the absolute poll errors only over the poll's percentage of Trump voters and the state in which the poll is carried out, as shown below:
+
+\setlength{\baselineskip}{10pt}
+```{r}
+fit.simple <- lm(poll.abserr ~ state + poll.rep.frac, data = merged)
+summary(fit.simple)
+```
+\setlength{\baselineskip}{23pt}
+\vspace{0.2in}
+
+Here all the covariates have extremely low p-values, 
+and the r-squred value is as high as $0.98$.
+This is a convincing evidence for the relation between what the poll predicts and how accurate the poll predicts. 
+
+\section{Discussion} \label{sec:discuss}
+
+In this analysis, we observed that by using the attributes of the poll and the characteristics of the state, we can gain substatial information about the absolute poll error. Some covariates make the poll more accurate as they increase, while others make the poll more accurate as they decrease.
+The question is what determines whether a covariate is a booster or a inhibitor of poll accuracy?
+
+From a survey perspective, this relation may be strongly associated with the sample nonresponse bias.
+If we see each demographic covariate as a strata,
+then the sample's representativeness of the population highly depends on how willing people within this strata are to response to the poll,
+provided that poll is reaching different people groups uniformly.
+(If the poll is not well-designed and its reaching of people is biased, which is also possible, then the sample's bias will be even greater.)
+For example, as proposed in \cite{mercer}, many Trump supporters have anti-institutional feelings, and this factor may cause them to be more annoyed by phone calls from pollsters and less likely to respond to polls.
+This will make it hard for the polls to reach these Trump supporters and thus underestimate Trump's popularity in a state.
+In our analysis, the percentage of white people has a positive effect on the absolute poll error.
+Since from exit polls we know that 58% white people voted for Trump (\cite{nytimes}),
+white people might be underrepresented by poll surveys.
+On the other hand, the percentage of population with at least a bachelor's degree has a negative effect on the absolute poll error.
+This suggests that college graduates may be more willing to share their opnions to pollsters.
+
+On the other hand, the regression of absolute poll errors over states and the predicted Trump's performance is very informative.
+The analysis shows that the better Trump performs in a state based on aggregated polls, the more he will outperforms the polls in the actual election.
+Moreover, the effect of Trump's predicted performance on the absolute poll error is surprisingly close within each state,
+as shown in the plot in \Cref{subsec:agg}. 
+This suggests that there may be some systematic bias in the polls.
+Further investigation on finer-level poll datasets is needed to reveal the deeper problems in the polling system for the 2016 presidential election.
+
+
+
+
+
+
+
+
+\newpage
+
+\begin{thebibliography}{}
+
+\bibitem[Bialik \& Enten(2016)]{bialik} Bialik, C. and Enten, L. The Polls Missed Trump. We Asked Pollsters Why. FiveThirtyEight (2016).
+
+
+\bibitem[Kirkegaard (2016)]{voteData} Kirkegaard, E. O. USA County Data. (2016). Unpublished dataset. Retrieved from https://github.com/Deleetdk/USA.county.data.
+
+\bibitem[Kirkegaard (2016)]{kirkegaard} Kirkegaard, E. O. Inequality across US counties: an S factor analysis. (2016).
+
+\bibitem[Mercer, Deane, \& Mcgeeney (2016)]{mercer} Mercer, A., Deane, C., and Mcgeeney, K. Why 2016 election polls missed their mark. Pew Research Center (2016). 
+
+\bibitem[New York Times (2017)]{nytimes} New York Times. Presidential Election Results: Donald J. Trump Wins. NYTIMES.COM (2017). 
+
+\bibitem[Silver (2016)]{pollData} Silver, N. Presidential General Polls, 2016. FiveThirtyEight (2016). Retrieved from https://projects.fivethirtyeight.com/2016-election-forecast.
+
+\bibitem[Stein(2016)]{stein} Stein, J.. ``7 experts try to explain how the polls missed Donald Trump’s victory''. Vox (2016).
+
+
+
+\end{thebibliography}
+
+\newpage
+\appendix
+
+\section{R codes}
+
+Below is the R codes that are used for analyzing the datasets.
+
+```{r, echo = TRUE, eval = FALSE}
+library(MASS)
+library(car)
+
+# vote result dataset
+load("~/data/presidential_2016/USA.county.data/data/USA_county_data.RData")
+# Selection variables to be included
+to.be.weighted <- c(
+                    "At.Least.Bachelor.s.Degree",
+                    "Median.Earnings.2010.dollars",
+                    "White",
+                    "Farming.fishing.and.forestry.occupations",
+                    "Poverty.Rate.below.federal.poverty.threshold",
+                    "median_age",
+                    "Unemployment",
+                    "Violent.crime"
+                    )
+to.be.summed <- c("Total.Population",
+                  "votes16_trumpd",  "total16",
+                  "rep12", "total12")
+vote <- USA_county_data[, c("State", to.be.summed, to.be.weighted)]
+
+to.be.weighted <- c("BachelorOrAbove", "MedianEarnings", 
+                    "White", "Farming", "PovertyRate", 
+                    "MedianAge", "Unemployment", "ViolentCrime")
+colnames(vote)[c(7:(7+length(to.be.weighted)-1))] <- to.be.weighted
+
+# Clean out unwanted observations
+vote <- vote[complete.cases(vote),]
+vote <- vote[(vote$State != "Hawaii" &
+                        vote$State != "Alaska" &
+                        vote$State != "District of Columbia"),]
+vote$State <- as.factor(vote$State)
+
+
+
+# Add state population to each county
+stpop <- aggregate(vote$Total.Population,
+                   by = list(State = vote$State), FUN = sum)
+colnames(stpop)[2] = "st.pop"
+vote <- merge(vote, stpop, by = "State")
+# Weight the variables
+vote$wt <- vote$Total.Population / vote$st.pop
+vote.wt <- vote
+vote.wt[,to.be.weighted] <- vote.wt[,to.be.weighted] * vote.wt$wt
+
+
+
+# Aggregate by state
+vote.agg <- aggregate(
+  vote.wt[,!(names(vote.wt) %in% c("State", "st.pop", "wt"))],
+                      by = list(State=vote.wt$State), FUN = sum)
+vote.agg$rep16.frac <- vote.agg$votes16_trumpd / vote.agg$total16 * 100
+vote.agg$rep12.frac <- vote.agg$rep12 / vote.agg$total12 * 100
+vote.agg$turnout16 <- vote.agg$total16 / vote.agg$Total.Population
+# Make vote.agg compatible to poll.agg
+colnames(vote.agg)[1] = "state"
+vote.agg$state <- as.character(vote.agg$state)
+
+
+# poll dataset
+poll <- read.csv("~/data/presidential_2016/silver_poll.csv")
+
+
+# Convert poll date to days before the voting day
+poll$middledate <- (as.Date(poll$enddate, "%m/%d/%Y") 
+                    - as.Date(poll$startdate, "%m/%d/%Y")) / 2 
++ as.Date(poll$startdate, "%m/%d/%Y")
+poll$daystillvote <- as.numeric(as.Date(poll$forecastdate, "%m/%d/%y") 
+                                - as.Date(poll$middledate, "%m/%d/%Y"))
+poll$poll.rep.frac <- poll$rawpoll_trump 
+# Clean out the unwanted observations
+poll <- poll[poll$type == "polls-only",]
+poll <- poll[,c("state", "samplesize", "poll.rep.frac",
+                "daystillvote", "pollster")]
+poll <- poll[complete.cases(poll),]
+poll <- poll[(poll$state != "Hawaii" &
+                        poll$state != "Alaska" &
+                        poll$state != "U.S." &
+                        poll$state != "District of Columbia"),]
+poll[(poll$state=="Nebraska CD-1"|
+          poll$state=="Nebraska CD-2"|
+          poll$state=="Nebraska CD-3"),]$state <- "Nebraska"
+poll[(poll$state=="Maine CD-1"|
+          poll$state=="Maine CD-2"|
+          poll$state=="Maine CD-3"),]$state <- "Maine"
+poll$state <- as.character(poll$state)
+colnames(poll)[2] <- "poll.size"
+
+
+
+# Combine poll result and vote result
+merged <- merge(poll, vote.agg, by = "state")
+merged$poll.err <- merged$poll.rep.frac - merged$rep16.frac
+merged$poll.abserr <- abs(merged$poll.err)
+
+# Add state region and state abbreviations to dataset
+data(state)
+state <- state.name
+stregion <- data.frame(state, state.region, state.abb)
+merged <- merge(merged, stregion, by = "state")
+
+# Linear regression
+covariates <- colnames(merged)[!(colnames(merged) %in% c("state",
+                                      "Total.Population", "votes16_trumpd",
+                                      "total16", "rep12", "total12",
+                                      "rep16.frac", "poll.abserr", "pollster",
+                                      "state.abb", "poll.err",
+                                      "turnout16"
+                                      ))]
+fit <- lm(as.formula(paste0("poll.abserr~",paste(covariates, collapse = "+"))),
+          data = merged)
+poll.abserr.st <- aggregate(merged$poll.abserr, 
+                            by = list(state.abb=merged$state.abb), FUN = mean)
+poll.repfrac.st <- aggregate(merged$poll.rep.frac, 
+                             by = list(state.abb=merged$state.abb), FUN = mean)
+poll.abserr.st <- merge(poll.abserr.st, 
+                        poll.repfrac.st, by = "state.abb")
+
+# Distribution of erros
+par(mfrow = c(1,2))
+hist(merged$poll.err, 
+     main = "Distribution of poll errors", xlab = "Poll errors")
+hist(merged$poll.abserr, 
+     main = "Distribution of abs poll errors", xlab = "Absolute poll errors")
+
+# Linear regression of absolute error 
+# over poll and state attributes
+print(summary(fit))
+
+# Model diagnostic
+par(mfrow = c(1,2))
+plot(fit)
+
+# Show outliers
+outlierTest(fit)
+idx <- as.numeric(names(outlierTest(fit)$rstudent))
+merged[idx, c("state", "pollster", "daystillvote", 
+              "poll.rep.frac", "poll.err")]
+
+
+# Plot abs error vs percentage of Trump supports in the poll
+fit.ind <- lm(merged$poll.abserr ~ merged$poll.rep.frac)
+plot(merged$poll.rep.frac, merged$poll.abserr,
+     main =  paste(
+       "Individual Polls ",
+       "(R^2 = ", 
+       format(summary(fit.ind)$adj.r.squared, digits=3),
+       ", ",
+       "p-val = ",
+       format(summary(fit.ind)$coefficients[2,4], digits=3),
+       ")"
+       ),
+     xlab = "% Trump voters in poll",
+     ylab = "Absolute poll error",
+     col = as.numeric(as.factor(merged$state))
+)
+title(sub = paste(
+       "(R^2 = ", 
+       format(summary(fit.ind)$adj.r.squared, digits=3),
+       ", ",
+       "p-val = ",
+       format(summary(fit.ind)$coefficients[2,4], digits=3),
+       ")"
+       )
+      )
+abline(fit.ind)
+
+
+# Linear regression of error over 
+# state and percentage of Trump supporters in the poll
+fit.simple <- lm(poll.abserr ~ state + poll.rep.frac, data = merged)
+summary(fit.simple)
+```
+

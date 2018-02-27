@@ -1,0 +1,138 @@
+\message{ !name(biostat830_literatureReview.tex)}\documentclass[12pt]{article} \usepackage[nolists]{endfloat}
+\usepackage{epsfig} \usepackage[margin=1in]{geometry}
+\usepackage[semicolon,authoryear]{natbib} \bibliographystyle{natbib}
+\usepackage{amsmath}
+
+\begin{document}
+
+\message{ !name(biostat830_literatureReview.tex) !offset(-3) }
+
+\setlength{\textheight}{625pt} \setlength{\baselineskip}{23pt}
+
+\title{Subjective Bayesian Hypothesis Testing} \author{David (Daiwei)
+  Zhang}
+\maketitle
+
+\noindent
+Hypothesis testing is an important procedure in scientific
+inquiry. The classical way of testing hypothesis is the frequentist
+method.  However, the emergence of Bayesian inference provides an
+alternative to this traditional way and has been proved to have
+several advantages.  Within the Bayesian school of thoughts, there are
+two subdivisions: subjective Bayesianism and objective Bayesianism,
+depending on the type of prior distribution used in the analysis.  In
+this literature review, I will show the basic framework of Bayesian
+hypothesis testing, the difference between the frequentist and the
+Bayesian way, and finally the advantages of subjective Bayesianism.
+
+The frequentists' classical way of testing hypothesis was formed by
+Fisher.  His idea of forming and rejecting the null hypothesis with
+the data was highly influenced by the philosopher Karl Popper.  Popper
+advocates a science of falsification rather than verification.  He
+argues that a scientific hypothesis can never verified by any data,
+since we can only collect finitely many pieces of evidence and will
+never know if there are some evidence yet to be discovered that will
+contradict the hypothesis.  However, although it takes infinitely many
+data points to verify a hypothesis, it only needs one data point as a
+counterexample to falsify a hypothesis.  Thus Popper believes that
+science is a process of rejecting false hypotheses and the theory we
+believe to be true is technically the theory that has yet to be proven
+to be false, or rather, the theory that has the least data against it
+(\cite{thornton}).  We can clearly see the shadow of Popper in
+Fisher's way of testing hypothesis.  Rather than verifying the
+hypothesis that we think might be true, we form a strawman hypothesis
+and falsify it with data.  This is the essence of frequentist
+hypothesis testing (\cite{press}).
+
+In contrary, Bayesian hypothesis testing provides a drastically
+different philosophy and methodology.  In Bayesian inference,
+probability is regarded not as the limiting relative frequency of a
+repeatable event but rather as a measure of a person's degree of
+belief.  This makes it legitemate to assign probability to hypotheses,
+a taboo for the frequentists.  Rather than fixing the parameter and
+calculate the probability for it to produce the observed data,
+Bayesian statisticians fix the observed data and calculate the
+probability for it to be produced by the hypothesis.  This framework
+of thinking make hypothesis testing less frequently in need in
+Bayesian inference, or at least it makes hypothesis testing as easy as
+any other type of inference.  All we need is to look at the posterior
+distribution and find the probability for the parameter to be in the
+range that we are interested in.  Notice that point hypothesis testing
+(e.g. $\theta = 0$), which is frequently used by frequentists, has no
+meaning in Bayesian inference, since a point has zero mass in the
+posterior distribution.  But this shows another advantage of Bayesian
+hypothesis testing: rather than answering whether $\theta$ is zero, it
+tells us how $\theta$ is distributed, which gives us much more
+information (\cite{gelman} Ch. 8).
+
+In addition to the infrequent need to test hypotheses and the ability
+to assign probabilities to hypotheses, Bayesian hypothesis testing is
+advantageous in the weakness area of the frequentist method.  First of
+all, the significance level in the frequentist hypothesis testing is
+arbitrary. The number $0.05$ is not a magic number and can be replaced
+by $0.10$, $0.01234$, or $1/\pi$.  On the other hand, for the
+Bayesian, all that is needed is whether the posterior distribution
+favors one hypothesis or the other, that is, whether the odds is
+greater or less than one:
+\begin{align*}
+  \frac{P(H_0 | x)}{P(H_1 | x)} = \frac{P(H_0)}{P(H_1)} \frac{P(x | H_0)}{P(x | H_1)}
+\end{align*}
+This is naturally extended to testing more than two hypotheses.
+In the case when the parameter is continuous and the alternative hypothesis is composite,
+we can simply take the average for the alternative hypothesis in the posterior distribution:
+\begin{align*}
+  \frac{P(H_0 | x)}{P(H_1 | x)} = \frac{P(H_0)}{P(H_1)} \frac{P(x | H_0, \theta)}{\int P(x | H_1, \theta) g(\theta) d\theta},
+\end{align*}
+where $g$ is $\theta$'s prior distribution under $H_1$.
+  
+Moreover, frequentists often test point hypotheses of the form
+$\theta = \theta_0$, but in reality, $\theta$ is almost never equal to
+zero but rather often in some $\epsilon$ neighborhood of zero.  This
+means that if the testing procedure is consistent, we can reject any
+hypothesis we want.  This provides a loophole to show the significance
+that does not exist.  Finally, frequentist hypothesis testing involves
+data that is never reserved.  When we set a significance level for our
+p-value, we are dividing the sample space into two regions.  However,
+either of these two regions contains data points that have never been
+observed.  This violates the likelihood principle, which states that
+all the information in a sample that is relevant to the parameters of
+the model is contained in the likelihood function. In addition,
+studies (\cite{bergerSelke} and \cite{casellaBerger}) have shown that
+data against the null hypothesis is generally not as strong as what is
+reflected in the p-value. Thus Bayesian hypothesis is often more
+conservative than its frequentist counterpart (\cite{press}).
+
+Although Bayesian inference has several advantages over frequentist
+inference, it also has its own challenges.  One component in Bayesian
+hypothesis testing that statisticians often disagree on is the choice
+of the prior distribution.  One
+
+
+
+\vspace{0.5in}
+
+\begin{thebibliography}{}
+
+\bibitem[Berger \& Selke(1987)]{bergerSelke}
+
+\bibitem[Casella \& Berger(1987)]{casellaBerger}
+  
+\bibitem[Gelman et al.(2004)]{gelman}
+
+\bibitem[Goldstein(2006)]{goldstein}
+
+\bibitem[Press(2003)]{press}
+
+\bibitem[Thornton(2016)]{thornton} \newblock Thornton, Stephen, "Karl
+  Popper", The Stanford Encyclopedia of Philosophy (Winter 2016
+  Edition), Edward N. Zalta (ed.), URL =
+  <https://plato.stanford.edu/archives/win2016/entries/popper/>.
+
+\bibitem[Writer(2015)]{citation2} Writer, G. (2015).  \newblock IBM \&
+  Watson - can they cure the world?.  \newblock {\em Nature
+    Investigations\/}, {\bf 3}, 100- 101.
+\end{thebibliography}
+
+\message{ !name(biostat830_literatureReview.tex) !offset(-5) }
+
+\end{document}

@@ -1,0 +1,11 @@
+*.Rhistory
+*.desktop
+*.log
+*.aux
+auto
+*#*#
+*.gz
+*.prv
+*.hidden
+*.fmt
+*.zip

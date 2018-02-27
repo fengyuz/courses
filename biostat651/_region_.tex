@@ -1,0 +1,224 @@
+\message{ !name(biostat651_summary.tex)}\documentclass{amsart}
+\usepackage{amsmath}
+
+\title{Biostat 651 Summary}
+
+\begin{document}
+
+\message{ !name(biostat651_summary.tex) !offset(-3) }
+
+
+\maketitle
+
+\begin{enumerate}
+\item Assumptions of LM and GLM
+  \begin{center}
+    \begin{tabular}{|c|c|c|}
+      \hline
+      & LM & GLM \\
+      \hline
+      $f_{Y_i}$ & Normal & Exponential family \\
+      \hline
+      $E(Y_i)$ & $x_i^T \beta$ & $g^{-1}(x_i^T \beta)$ \\
+      \hline
+      $Var(Y_i)$ & $\sigma$ & $\sigma_i$ \\
+      \hline
+    \end{tabular}
+  \end{center}
+\item MLE
+  \begin{enumerate}
+  \item Likelihood, score, information
+    \begin{align*}
+      I(\theta_0) & = n I_1(\theta_0) \overset{P}{\longleftarrow} J(\hat{\theta}) 
+    \end{align*}
+  \item Asymptotic properties
+    \begin{align*}
+      \hat{\theta} & \sim N(\theta_0 , I(\theta_0)^{-1}) \\
+      U(\theta_0) & \sim N(0, I(\theta_0)) 
+    \end{align*}
+  \item Hypothesis test for $\theta$: \\
+    $H_0$: $\theta_1 = \theta_{H1}$, $H_a$:
+    $\theta_1 \neq \theta_{H1}$,
+    ($\theta^T = (\theta_1^T, \theta_2^T)$,
+    $\operatorname{df}(\theta) = q = q_1 + q_2$)
+    \begin{enumerate}
+    \item Wald test
+      \begin{equation*}
+        (\hat{\theta}_1 - \theta_{1H})^T \hat{V}(\hat{\theta_1})^{-1}
+        (\hat{\theta}_1 - \theta_{1H}) \sim \chi^2_{q_1}
+      \end{equation*}
+      Where $\hat{V}(\hat{\theta_1})$ is (I think) the first $q_1$
+      diagonal block matrix of $I(\hat{\theta})$.
+    \item Score test
+      \begin{equation*}
+        U(\hat{\theta}_H)^T I(\hat{\theta}_H)^{-1} U(\hat{\theta}_H)
+        \sim \chi^2_{q_1}
+      \end{equation*}
+      We use $\chi^2_{q1}$ rather than $\chi^2_q$, even though
+      $U(\hat{\theta}_H)$ has $q$ elements, because the last $q_2$
+      elements of $U(\hat{\theta}_H)$ are always zero.
+    \item Likelihood ratio test
+      \begin{equation*}
+        -2(\ell(\hat{\theta}_H) - \ell(\hat{\theta})) \sim \chi^2_{q_1}
+      \end{equation*}
+    \end{enumerate}
+  \end{enumerate}
+\item Exponential family:
+  \begin{enumerate}
+  \item Single-parameter:
+    \begin{align*}
+      f(y; \theta, \phi) & = \exp\left\{\frac{t(Y)\theta - b(\theta)}{a(\phi)} + c(Y, \phi)\right\} 
+    \end{align*}
+    where $a(\phi) > 0$, and we like the canonical form $t(Y) = Y$.
+  \item Properties:
+    \begin{align*}
+      E(Y_i) & = \mu_i = b'(\theta_i) \\
+      Var(Y_i) & = b''(\theta_i) a(\phi) = v(\mu_i) a(\phi) 
+    \end{align*}
+  \item Multi-parameter
+    \begin{align*}
+      f(y; \theta) & = \exp\left\{\sum_{j=1}^m t_j(Y)\theta_j - b(\theta) + c(Y)\right\} 
+    \end{align*}
+
+  \end{enumerate}
+\item Linking function
+  \begin{align*}
+    g(\mu_i) & = \eta_i = x_i^T \beta 
+  \end{align*}
+  \begin{enumerate}
+  \item Canonical link ($\theta_i = \eta_i$):
+    \begin{align*}
+      v(\mu_i) & = b''(\theta_i) = \frac{\partial\mu_i}{\partial\theta_i} = \frac{1}{g'(\mu_i)}
+    \end{align*}
+    for common distributions: \bigskip
+    \begin{center}
+      \begin{tabular}{|c|c|c|c|c|c|c|}
+        \hline
+        Distribution & $g(\mu_i)$ & $v(\mu_i)$ & $\theta$ & $b(\theta)$ & $a(\phi)$ \\
+        \hline
+        Normal & $\mu_i$ & $1$ & $\mu$ & $ \frac{1}{2} \theta^2 $ & $\sigma^2$ \\
+        \hline
+        Bernoulli & $\log\{\frac{\mu_i}{1-\mu_i}\}$ & $\mu_i(1-\mu_i)$ & $\log\{\frac{\pi}{1-\pi}\}$ & $\log(e^\theta+1)$ & 1 \\
+        \hline
+        Poisson & $\log(\mu_i)$ & $\mu_i$ & $\log(\lambda)$ & $e^\theta$ & 1 \\
+        \hline
+      \end{tabular}
+    \end{center}
+  \end{enumerate}
+
+\item Point estimation
+  \begin{align*}
+    U(\beta) & = X^T [a(\phi) \Delta V]^{-1} (Y - \mu) \\
+    I(\beta) & = X^T [a(\phi) \Delta V \Delta]^{-1} X 
+  \end{align*}
+  where
+  \begin{align*}
+    V & = \operatorname{diag}[v(\mu_i)] = \operatorname{diag}[b''(\theta_i)] \\
+    \Delta & = \operatorname{diag} [g'(\mu_i)]
+  \end{align*}
+  \begin{enumerate}
+  \item Canonical link:
+    \begin{align*}
+      U(\beta) & = X^T [a(\phi)]^{-1} (Y - \mu) \\
+      J(\beta) & = I(\beta) = X^T [a(\phi) \Delta]^{-1} X 
+    \end{align*}
+    since $\Delta V = I$. And find $\hat{\beta}$ by solving
+    \begin{align*}
+      X^T(Y - \mu) = 0
+    \end{align*}
+  \end{enumerate}
+  
+\item Computation methods
+  \begin{enumerate}
+  \item Newton-Raphson
+    \begin{align*}
+      \hat{\beta}_{j+1} = \hat{\beta}_j + J(\hat{\beta}_j)^{-1} U(\hat{\beta}_j)
+    \end{align*}
+  \item Fisher scoring
+    \begin{align*}
+      \hat{\beta}_{j+1} = \hat{\beta}_j + I(\hat{\beta}_j)^{-1} U(\hat{\beta}_j)
+    \end{align*}
+    More robust, convergence takes longer, same as NR if canonical
+    link
+  \item IRWLS
+    \begin{align*}
+      \hat{\beta}_{j+1} & = (X^T V_j X)^{-1} X^T V_j Z_j \\
+      Z_j & = \eta_j + V_j^{-1}(Y - \mu_j)
+    \end{align*}
+    This is for canonical link. For non-canonical, switch to the
+    appropriate $U(\beta)$ and $I(\beta)$.
+
+
+  \end{enumerate}
+  
+\item Hypothesis test for $\beta$
+  \begin{enumerate}
+  \item Wald test ($H_0$: $C\beta - d = 0$)
+    \begin{align*}
+      (C\beta - d)^T (C I(\hat{\beta})^{-1} C^T)^{-1} (C\beta-d) \sim X_r^2
+    \end{align*}
+    where $r = \operatorname{rank}(C)$.
+  \item Score test ($H_0$: $\beta_1 - d = 0$)
+    \begin{equation*}
+      U(\hat{\beta}_H)^T I(\hat{\beta}_H)^{-1} U(\hat{\beta}_H)
+      \sim \chi^2_{q_1}
+    \end{equation*}
+  \item Likelihood ratio test ($H_0$: $\beta_1 - d = 0$)
+    \begin{align*}
+      -2 (\ell(\hat{\beta}_H) - \ell(\hat{\beta})) \sim \chi^2_{q_1}
+    \end{align*}
+  \end{enumerate}
+
+\item Model diagnostics
+  \begin{enumerate}
+  \item Goodness of fit tests
+    \begin{enumerate}
+    \item Deviance
+      \begin{align*}
+        D & = 2 \sum \{ Y_i (\tilde{\theta}_i - \hat{\theta}_i) - [b(\tilde{\theta}_i) - b(\hat{\theta_i})] \} 
+            = \sum[\hat{r}^P_i]^2 \\
+        D^* & =  2 [ \ell(\tilde{\theta}) - \ell(\hat{\theta})]
+              = D / a(\phi)
+              \sim \chi^2_{n-q} \quad \text{when model fits well}
+      \end{align*}
+      Notice that $D^*_0 - D^*_1 = X^2_{LRT}$ is the likelihood ratio
+      statistic.
+    \item Pearson chi-square statistic
+      \begin{align*}
+        X^2_P & = \sum (Y_i - \hat{\mu}_i)^2 / \hat{V}(Y_i)
+                = \sum[\hat{r}^P_i]^2
+                \sim \chi^2_{n-q} \quad \text{when model fits well}
+      \end{align*}
+    \end{enumerate}
+
+  \item Leverage: $h_{ii}$ the diagonal elements of the hat matrix
+    \begin{align*}
+      H = V^{1/2} X(X^T V X)^{-1} X^T V^{1/2}
+    \end{align*}
+    Then the standarized residuals are
+    \begin{align*}
+      \hat{r}^{DS}_i & = \hat{r}^D_i / \sqrt{1-h_{ii}} \\
+      \hat{r}^{PS}_i & = \hat{r}^P_i / \sqrt{1-h_{ii}} 
+    \end{align*}
+
+  \item Influence: Cook's distance
+    \begin{align*}
+      D_i & = \frac{1}{q} \frac{h_{ii}}{1-h_{ii}}(r^{PS}_i)^2
+    \end{align*}
+    
+  \item Multicollinearity: Variance inflation factor
+    \begin{align*}
+      VIF_j = \frac{1}{1-R^2_j}
+    \end{align*}
+    where $R^2_j$ is obtained by regressing the $j^\text{th}$ variable
+    against all the others in the weighted predictor matrix
+    $V^{1/2}X$.
+  \end{enumerate}
+
+    
+
+  
+\end{enumerate}
+\message{ !name(biostat651_summary.tex) !offset(-5) }
+
+\end{document}

@@ -1,0 +1,27 @@
+
+
+			INPUT DATA
+
+
+number of simulations ...... 100
+number of patients ......... 30
+dose levels ................ -1.47 -0.87 -0.42 -0.10  0.20 
+probability of toxicity:
+ 0.05 0.15 0.30 0.45 0.60 
+target toxicity level ..... 0.3
+
+functional form: hyperbolic tangent
+prior distribution of the parameter:
+	number of sampled prior 1
+	GAMMA distribution:
+		a=  1
+		b=  1
+modified CRM
+patients treated at a level to decide MTD .... 6
+patients treated simultaneously at a level ... 3
+minimum number of patients in the CRM design ....... 18
+number of burn-in iterations in MCMC ....... 1000
+number of production iterations in MCMC .... 1000
+toxicity from given toxicity probabilities
+random seed .......................... 11
+name of the output file:  HT.txt

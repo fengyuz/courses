@@ -1,0 +1,8 @@
+model{
+	for (i in 1:N1){
+		s[i] ~ dbin(p[i], n[i])		
+		p[i] <- pow((exp(d[i]) / (exp(d[i]) + exp(-d[i]))), theta)
+	}
+	theta ~ dgamma(low, high)
+}
+
