@@ -9,3 +9,5 @@ auto
 *.hidden
 *.fmt
 *.zip
+*.fls
+*.fdb_latexmk
