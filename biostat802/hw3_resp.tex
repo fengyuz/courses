@@ -1,6 +1,5 @@
 \documentclass[12pt]{article}
 \usepackage{amsmath}
-
 \title{Biostat 802 Homework 3}
 \author{David (Daiwei) Zhang}
 
@@ -86,6 +85,110 @@ we pick the observations with the highest likelihood ratio
     \right.
   \]
 \end{enumerate}
+
+\section{Bayes Hypothesis Testing}
+
+\subsection{Probability of Error}
+
+Let $\delta(x)$ be our decision rule.
+Then the overall probability of error is
+\begin{align*}
+  P[I(H_i)(1-\delta(X))=1]
+  = &E[I(H_i)(1-\delta(X))] \\
+  = & \pi_0 E\Big[\delta(X) \Big| I(H_0)\Big] + \pi_1 E\Big[1-\delta(X) \Big| I(H_1)\Big] \\
+  = & \pi_0 E\Big[E[\delta(X)] \Big| I(H_0)\Big] + \pi_1 E\Big[E[1-\delta(X)] \Big| I(H_1)\Big] \\
+  = & \pi_0 E\Big[\psi(X) \Big| I(H_0)\Big] + \pi_1 E\Big[1-\psi(X) \Big| I(H_1)\Big] \\
+  = & \pi_0 E_0 \psi(X) + \pi_1 E_1 [1 - \psi(X)]
+\end{align*}
+
+\subsection{Bayes Test}
+
+We have
+\begin{align*}
+  P[\text{Error}]
+  = & \pi_0 E_0 \psi(X) - \pi_1 E_1 [\psi(X)] + \pi_1 \\
+  = & \pi_0 \Big\{E_0 \psi(X) - \frac{\pi_1}{\pi_0} E_1 [\psi(X)] \Big\} + \pi_1
+\end{align*}
+In order to minimize $P[\text{Error}]$,
+we just need to find the $\psi(x)$ that minimizes
+\begin{align*}
+  E_0 \psi(X) - \frac{\pi_1}{\pi_0} E_1 [\psi(X)]
+  = & \int_{x \in \mathcal{X}} \Big[P_0(x) - \frac{\pi_1}{\pi_0} P_1(x)\Big] \psi(x) dx \\
+  = & \int_{S_-} \Big[P_0(x) - \frac{\pi_1}{\pi_0} P_1(x)\Big] \psi(x) dx \\
+  + & \int_{S_+} \Big[P_0(x) - \frac{\pi_1}{\pi_0} P_1(x)\Big] \psi(x) dx. 
+\end{align*}
+Here $dx$ is the Lebesgue measure,
+and $S_-$ and $S_+$ corresponds to the subset of $\mathcal{X}$
+where $P_0(x) - \frac{\pi_1}{\pi_0} P_1(x)$ are negative and positive, respectively.
+(We don't need to worry about the case when this value is zero,
+since in that case the integral would be zero, too.)
+Since $S_-$ and $S_+$ are disjoint,
+we just need to minimize the integrals over them separtely.
+By viewing $\psi$ as a weight function ranging between $0$ and $1$,
+we see that
+\[
+  \int_{S_-} \Big[P_0(x) - \frac{\pi_1}{\pi_0} P_1(x)\Big] \psi(x) dx
+\]
+is minimized by setting $\psi(x)$ to $1$ over all of $S_-$,
+and that
+\[
+  \int_{S_+} \Big[P_0(x) - \frac{\pi_1}{\pi_0} P_1(x)\Big] \psi(x) dx
+\]
+is minimized by setting $\psi(x)$ to $0$ over all of $S_+$.
+But $S_-$ is exactly the region where
+\[
+  \frac{P_1(x)}{P_0(x)} > \frac{\pi_0}{\pi_1}.
+\]
+Thus the critical function for minimizing the probability of error is
+\[
+  \psi(x) =
+  \left.
+    \begin{cases}
+      0, & \text{if  } \frac{P_1(x)}{P_0(x)} < \frac{\pi_0}{\pi_1} \\
+      \text{anything}, & \text{if  } \frac{P_1(x)}{P_0(x)} = \frac{\pi_0}{\pi_1} \\
+      1, & \text{if  } \frac{P_1(x)}{P_0(x)} > \frac{\pi_0}{\pi_1} 
+    \end{cases} 
+  \right.
+\]
+
+\subsection{Posterior Probability and Likelihood Ratio}
+
+Consider the case when $H_1$ has a larger posterior probability than $H_0$,
+that is,
+\[
+  \frac{\pi_1 P_1(x)}{\pi_0 P_0(x) + \pi_1 P_1(x)}
+  > \frac{\pi_0 P_0(x)}{\pi_0 P_0(x) + \pi_1 P_1(x)},
+\]
+which is exactly
+\[
+  \frac{P_1(x)}{P_0(x)} > \frac{\pi_0}{\pi_1},
+\]
+the creteria for the likelihood ratio test.
+The same argument applies to
+the case when $H_0$ has a larger posterior probability than $H_1$
+and the case when $H_0$ and $H_1$ have the same posterior probability.
+
+\section{Power of Sufficient Statistic}
+
+For any $\theta$, the power $\psi(T(X))$ is
+\begin{align*}
+  E_\theta[\psi(T(X))]
+  = & E_\theta\Big[ E[ \psi(X) | T(X)] \Big] \\
+  = & E_\theta[\psi(X)],
+\end{align*}
+which is the power of $\psi(X)$.
+  
+
+  
+
+
+  
+    
+
+
+  
+
+
 
       
 
