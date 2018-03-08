@@ -1,0 +1,107 @@
+\begin{thebibliography}{13}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Alderman et~al.(1987)Alderman, Baron, and
+  Savitz]{alderman1987maternal}
+Beth~W Alderman, Anna~E Baron, and David~A Savitz.
+\newblock Maternal exposure to neighborhood carbon monoxide and risk of low
+  infant birth weight.
+\newblock \emph{Public Health Reports}, 102\penalty0 (4):\penalty0 410, 1987.
+
+\bibitem[Berkowitz et~al.(2003)Berkowitz, Wolff, Janevic, Holzman, Yehuda, and
+  Landrigan]{berkowitz2003world}
+Gertrud~S Berkowitz, Mary~S Wolff, Teresa~M Janevic, Ian~R Holzman, Rachel
+  Yehuda, and Philip~J Landrigan.
+\newblock The world trade center disaster and intrauterine growth restriction.
+\newblock \emph{Jama}, 290\penalty0 (5):\penalty0 595--596, 2003.
+
+\bibitem[Bobak(2000)]{bobak2000outdoor}
+Martin Bobak.
+\newblock Outdoor air pollution, low birth weight, and prematurity.
+\newblock \emph{Environmental health perspectives}, 108\penalty0 (2):\penalty0
+  173, 2000.
+
+\bibitem[Bobak and Leon(1999)]{bobak1999pregnancy}
+Martin Bobak and David~A Leon.
+\newblock Pregnancy outcomes and outdoor air pollution: an ecological study in
+  districts of the czech republic 1986-8.
+\newblock \emph{Occupational and environmental medicine}, 56\penalty0
+  (8):\penalty0 539--543, 1999.
+
+\bibitem[Choi et~al.(2008)Choi, Rauh, Garfinkel, Tu, and
+  Perera]{choi2008prenatal}
+Hyunok Choi, Virginia Rauh, Robin Garfinkel, Yihsuan Tu, and Frederica~P
+  Perera.
+\newblock Prenatal exposure to airborne polycyclic aromatic hydrocarbons and
+  risk of intrauterine growth restriction.
+\newblock \emph{Environmental Health Perspectives}, 116\penalty0 (5):\penalty0
+  658, 2008.
+
+\bibitem[Landgren(1996)]{landgren1996environmental}
+O~Landgren.
+\newblock Environmental pollution and delivery outcome in southern sweden: a
+  study with central registries.
+\newblock \emph{Acta paediatrica}, 85\penalty0 (11):\penalty0 1361--1364, 1996.
+
+\bibitem[Maisonet et~al.(2004)Maisonet, Correa, Misra, and
+  Jaakkola]{maisonet2004review}
+Mildred Maisonet, Adolfo Correa, Dawn Misra, and Jouni~JK Jaakkola.
+\newblock A review of the literature on the effects of ambient air pollution on
+  fetal growth.
+\newblock \emph{Environmental research}, 95\penalty0 (1):\penalty0 106--115,
+  2004.
+
+\bibitem[Ott(2002)]{ott2002diagnosis}
+William~J Ott.
+\newblock Diagnosis of intrauterine growth restriction: comparison of
+  ultrasound parameters.
+\newblock \emph{American journal of perinatology}, 19\penalty0 (03):\penalty0
+  133--138, 2002.
+
+\bibitem[O’Neill et~al.(2013)O’Neill, Osornio-Vargas, Buxton, S{\'a}nchez,
+  Rojas-Bracho, Castillo-Castrejon, Mordhukovich, Brown, Vadillo-Ortega,
+  et~al.]{o2013air}
+Marie~S O’Neill, Alvaro Osornio-Vargas, Miatta~A Buxton, Brisa~N S{\'a}nchez,
+  Leonora Rojas-Bracho, Marisol Castillo-Castrejon, Irina~B Mordhukovich,
+  Daniel~G Brown, Felipe Vadillo-Ortega, et~al.
+\newblock Air pollution, inflammation and preterm birth in mexico city: study
+  design and methods.
+\newblock \emph{Science of the Total Environment}, 448:\penalty0 79--83, 2013.
+
+\bibitem[Resnik(2002)]{resnik2002intrauterine}
+Robert Resnik.
+\newblock Intrauterine growth restriction.
+\newblock \emph{Obstetrics \& Gynecology}, 99\penalty0 (3):\penalty0 490--496,
+  2002.
+
+\bibitem[Rogers et~al.(2000)Rogers, Thompson, Addy, McKeown, Cowen, and
+  Decoufle]{rogers2000association}
+J~Felix Rogers, Shirley~J Thompson, Cheryl~L Addy, Robert~E McKeown, David~J
+  Cowen, and Pierre Decoufle.
+\newblock Association of very low birth weight with exposures to environmental
+  sulfur dioxide and total suspended particulates.
+\newblock \emph{American journal of epidemiology}, 151\penalty0 (6):\penalty0
+  602--613, 2000.
+
+\bibitem[Smith et~al.(2002)Smith, Stenhouse, Crossley, Aitken, Cameron, and
+  Connor]{smith2002early}
+Gordon~CS Smith, Emily~J Stenhouse, Jennifer~A Crossley, David~A Aitken, Alan~D
+  Cameron, and J~Michael Connor.
+\newblock Early pregnancy levels of pregnancy-associated plasma protein a and
+  the risk of intrauterine growth restriction, premature birth, preeclampsia,
+  and stillbirth.
+\newblock \emph{The Journal of Clinical Endocrinology \& Metabolism},
+  87\penalty0 (4):\penalty0 1762--1767, 2002.
+
+\bibitem[Williams and Nwebube(2001)]{williams2001abdominal}
+KP~Williams and N~Nwebube.
+\newblock Abdominal circumference: a single measurement versus growth rate in
+  the prediction of intrapartum cesarean section for fetal distress.
+\newblock \emph{Ultrasound in obstetrics \& gynecology}, 17\penalty0
+  (6):\penalty0 493--495, 2001.
+
+\end{thebibliography}

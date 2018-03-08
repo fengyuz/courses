@@ -11,3 +11,4 @@ auto
 *.zip
 *.fls
 *.fdb_latexmk
+flymd.*
